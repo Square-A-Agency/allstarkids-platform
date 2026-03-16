@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Step1FamilyInfo from "@/components/enrollment/Step1FamilyInfo";
 import Step2Children from "@/components/enrollment/Step2Children";
 import Step3Medical from "@/components/enrollment/Step3Medical";
 import Step4PreK from "@/components/enrollment/Step4PreK";
 import Step4Agreements from "@/components/enrollment/Step4Agreements";
+import Step5SignSubmit from "@/components/enrollment/Step5SignSubmit";
 
 export type { FamilyInfo, ChildEntry, EnrollmentWizardState, EmergencyContact, AuthorizedPickup, InfantFeedingPlan, TopicalPreparations } from "@/types/enrollment";
 import type { FamilyInfo, ChildEntry, EnrollmentWizardState } from "@/types/enrollment";
@@ -19,6 +21,7 @@ const initialFamilyInfo: FamilyInfo = {
 };
 
 export default function EnrollPage() {
+  const router = useRouter();
   const [state, setState] = useState<EnrollmentWizardState>({
     step: 1,
     familyInfo: initialFamilyInfo,
@@ -179,15 +182,11 @@ export default function EnrollPage() {
         />
       )}
       {state.step === 6 && (
-        <div className="text-center py-20 text-gray-400">
-          <p className="text-lg font-medium">Step 6: Sign &amp; Submit — coming soon</p>
-          <button
-            onClick={() => goToStep(5)}
-            className="mt-4 text-blue-600 hover:underline text-sm"
-          >
-            ← Back
-          </button>
-        </div>
+        <Step5SignSubmit
+          state={state}
+          onBack={() => goToStep(5)}
+          onSubmitted={() => router.push("/enroll/confirmation")}
+        />
       )}
     </div>
   );
