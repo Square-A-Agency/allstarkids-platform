@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { FamilyInfo } from "@/app/enroll/page";
+import type { FamilyInfo } from "@/types/enrollment";
 
 interface Props {
   familyInfo: FamilyInfo;

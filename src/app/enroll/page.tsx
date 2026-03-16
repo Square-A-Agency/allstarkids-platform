@@ -3,42 +3,11 @@
 import { useState, useEffect } from "react";
 import Step1FamilyInfo from "@/components/enrollment/Step1FamilyInfo";
 import Step2Children from "@/components/enrollment/Step2Children";
+import Step3Medical from "@/components/enrollment/Step3Medical";
+import Step4Agreements from "@/components/enrollment/Step4Agreements";
 
-export type FamilyInfo = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  parent2FirstName: string;
-  parent2LastName: string;
-  parent2Email: string;
-  parent2Phone: string;
-  parent2WorkPhone: string;
-  parent2Employer: string;
-  parent2EmployerAddress: string;
-};
-
-export type ChildEntry = {
-  tempId: string; // client-side only, for list management
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  nameSuffix: string;
-  dateOfBirth: string; // ISO date string
-  sex: string;
-  programType: string;
-  track: string; // "PRE_K" | "UNIVERSAL"
-};
-
-export type EnrollmentWizardState = {
-  step: number;
-  familyInfo: FamilyInfo;
-  children: ChildEntry[];
-};
+export type { FamilyInfo, ChildEntry, EnrollmentWizardState, EmergencyContact, AuthorizedPickup, InfantFeedingPlan, TopicalPreparations } from "@/types/enrollment";
+import type { FamilyInfo, ChildEntry, EnrollmentWizardState } from "@/types/enrollment";
 
 const initialFamilyInfo: FamilyInfo = {
   firstName: "", lastName: "", email: "", phone: "",
@@ -145,16 +114,25 @@ export default function EnrollPage() {
           }}
         />
       )}
-      {state.step >= 3 && (
+      {state.step === 3 && (
+        <Step3Medical
+          children={state.children}
+          familyInfo={state.familyInfo}
+          onBack={() => goToStep(2)}
+          onNext={(children) => { updateChildren(children); goToStep(4); }}
+        />
+      )}
+      {state.step === 4 && (
+        <Step4Agreements
+          children={state.children}
+          onBack={() => goToStep(3)}
+          onNext={(children) => { updateChildren(children); goToStep(5); }}
+        />
+      )}
+      {state.step === 5 && (
         <div className="text-center py-20 text-gray-400">
-          <p className="text-lg font-medium">Steps 3–5 coming soon</p>
-          <p className="text-sm mt-2">Medical info, agreements, and signature steps will appear here.</p>
-          <button
-            onClick={() => goToStep(2)}
-            className="mt-4 text-blue-600 hover:underline text-sm"
-          >
-            ← Back
-          </button>
+          <p className="text-lg font-medium">Step 5: Sign &amp; Submit — coming soon</p>
+          <button onClick={() => goToStep(4)} className="mt-4 text-blue-600 hover:underline text-sm">← Back</button>
         </div>
       )}
     </div>

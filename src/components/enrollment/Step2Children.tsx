@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getApplicationTrack, getProgramTypeFromAge, PROGRAM_LABELS } from "@/lib/enrollment-utils";
-import type { ChildEntry } from "@/app/enroll/page";
+import type { ChildEntry } from "@/types/enrollment";
 
 interface Props {
   children: ChildEntry[];
