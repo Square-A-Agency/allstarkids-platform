@@ -136,12 +136,20 @@ export default function Step3Medical({ children, familyInfo, onBack, onNext }: P
   };
 
   const handleNext = () => {
-    const err = validateChild(childData[activeTab]);
-    if (err) {
-      setErrors((prev) => ({ ...prev, [activeTab]: err }));
+    // Validate all children, not just the active tab
+    const allErrors: Record<number, string> = {};
+    childData.forEach((c, i) => {
+      const err = validateChild(c);
+      if (err) allErrors[i] = err;
+    });
+    if (Object.keys(allErrors).length > 0) {
+      setErrors(allErrors);
+      // Switch to the first child with an error
+      const firstErrorIndex = Math.min(...Object.keys(allErrors).map(Number));
+      setActiveTab(firstErrorIndex);
       return;
     }
-    setErrors((prev) => { const n = { ...prev }; delete n[activeTab]; return n; });
+    setErrors({});
     onNext(childData);
   };
 
