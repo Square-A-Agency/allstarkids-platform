@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +5,218 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum ProgramType {
+  INFANT_TODDLER // Ages 1–2
+  PRESCHOOL // Ages 3–4
+  PRE_K // Ages 4–5 (Georgia state Pre-K)
+  AFTER_SCHOOL // Ages 5–12
+  SUMMER_CAMP_EAGLETS // Ages 5–7
+  SUMMER_CAMP_EAGLES // Ages 8–12
+}
+
+enum ApplicationStatus {
+  PENDING
+  UNDER_REVIEW
+  PLAYDATE_SCHEDULED
+  ACCEPTED
+  REJECTED
+}
+
+enum ApplicationTrack {
+  UNIVERSAL
+  PRE_K
+}
+
+enum LivingArrangement {
+  BOTH_PARENTS
+  MOTHER
+  FATHER
+  OTHER
+}
+
+// ─── Family Account ───────────────────────────────────────────────────────────
+
+model Family {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique // Clerk auth user ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Primary contact info
+  firstName String
+  lastName  String
+  email     String
+  phone     String
+  address   String
+  city      String
+  state     String @default("GA")
+  zip       String
+
+  // Second parent/guardian (optional)
+  parent2FirstName       String?
+  parent2LastName        String?
+  parent2Email           String?
+  parent2Phone           String?
+  parent2WorkPhone       String?
+  parent2Employer        String?
+  parent2EmployerAddress String?
+  parent2Address         String? // if different from child
+
+  children     Child[]
+  applications EnrollmentApplication[]
+
+  @@map("families")
+}
+
+// ─── Child Profile ────────────────────────────────────────────────────────────
+
+model Child {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  // Identity
+  firstName   String
+  lastName    String
+  middleName  String?
+  nameSuffix  String? // Jr, Sr, II, III
+  dateOfBirth DateTime
+  sex         String // M or F
+
+  // Program
+  programType ProgramType
+  track       ApplicationTrack
+
+  application EnrollmentApplication?
+
+  @@map("children")
+}
+
+// ─── Enrollment Application ───────────────────────────────────────────────────
+
+model EnrollmentApplication {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  submittedAt DateTime?
+
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  childId String @unique
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  track  ApplicationTrack
+  status ApplicationStatus @default(PENDING)
+
+  // ── Parental agreement details
+  enrollmentStartMonth String?
+  enrollmentEndMonth   String?
+  daysOfWeek           String[] // ["Monday", "Tuesday", ...]
+  startTime            String?
+  endTime              String?
+  mealPlan             String[] // ["Breakfast", "Lunch", "PM Snack", "Supper"]
+
+  // ── Living situation
+  livingArrangement LivingArrangement?
+  legalGuardian     LivingArrangement?
+
+  // ── Authorized pickups (stored as JSON array)
+  authorizedPickups Json?
+  // [{name, address, phone, relationship, relationshipToParent}]
+
+  // ── Emergency contacts
+  emergencyContacts Json?
+  // [{name, phone, relationship}]
+
+  // ── Medical info
+  doctorName            String?
+  doctorPhone           String?
+  clinicName            String?
+  specialNeeds          String?
+  specialAccommodations String?
+  medications           String?
+  allergies             String?
+
+  // ── School (if applicable)
+  currentSchool String?
+
+  // ── Topical preparations authorization
+  topicalPreparations Json?
+  // {babyWipes: true, bandaids: true, neosporin: false, ...}
+
+  // ── Transportation
+  usesTransportation         Boolean  @default(false)
+  transportPickupLocation    String?
+  transportPickupTime        String?
+  transportDeliveryLocation  String?
+  transportDeliveryTime      String?
+  transportDays              String[]
+  transportAuthorizedPerson  String?
+  transportFallbackProcedure String?
+
+  // ── Infant feeding (only for ages 1–2)
+  infantFeedingPlan Json?
+
+  // ── Pre-K specific fields
+  preKSsn                    String? // encrypted/hashed in practice
+  preKCounty                 String?
+  preKPreviousSchool         String?
+  preKLastDatePreviousSchool String?
+  preKLastHealthScreening    String?
+  preKEthnicity              String?
+  preKRace                   String[]
+  preKPrimaryLanguage        String?
+  preKBirthType              String? // Single, Twin, Triplet, etc.
+  preKSpecialEdServices      String[]
+  preKGovtServices           String[]
+  preKTransportation         Boolean?
+  preKSsnNotProvidedReason   String?
+  capsReceived               Boolean?
+  capsCaseId                 String?
+  needsExtendedDay           Boolean?
+
+  // ── Signatures (stored as base64 data URLs)
+  signatureParent       String?   @db.Text
+  signatureDate         DateTime?
+  signatureDirector     String?   @db.Text
+  signatureDirectorDate DateTime?
+
+  // ── Admin fields
+  playdateScheduledAt DateTime?
+  playdateNotes       String?
+  rejectionReason     String?
+  adminNotes          String?
+
+  documents ApplicationDocument[]
+
+  @@map("enrollment_applications")
+}
+
+// ─── Uploaded Documents ───────────────────────────────────────────────────────
+
+model ApplicationDocument {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  applicationId String
+  application   EnrollmentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  documentType String
+  // "BIRTH_CERTIFICATE" | "SSN_CARD" | "MEDICAID_CARD" | "PARENT_DL"
+  // "PROOF_OF_RESIDENCY" | "PEACH_CARE_CARD" | "FORM_3300" | "FORM_3232"
+
+  fileName String
+  fileUrl  String // Supabase Storage URL
+  fileSize Int?
+  mimeType String?
+
+  @@map("application_documents")
 }
