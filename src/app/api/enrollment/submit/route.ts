@@ -146,35 +146,43 @@ export async function POST(req: Request) {
   const childNames = children.map((c: any) => `${c.firstName} ${c.lastName}`).join(", ");
   const parentName = `${familyInfo.firstName} ${familyInfo.lastName}`;
 
-  // Parent confirmation
-  await resend.emails.send({
-    from: "All Star Kids Academy <no-reply@allstarkidsacademyga.com>",
-    to: familyInfo.email,
-    subject: "We received your enrollment application!",
-    html: `
-      <h2>Thank you, ${familyInfo.firstName}!</h2>
-      <p>We've received your enrollment application for <strong>${childNames}</strong>.</p>
-      <p>Our team will review your application and be in touch within 3–5 business days to schedule a playdate.</p>
-      <p>If you have any questions, please contact us at <a href="mailto:info@allstarkidsacademyga.com">info@allstarkidsacademyga.com</a>.</p>
-      <br/>
-      <p>— All Star Kids Academy<br/>4518 Covington Hwy, Decatur, GA 30035<br/>(Mon–Fri, 6:00 AM – 6:30 PM)</p>
-    `,
-  });
+  // Send emails — failures are non-fatal: DB write is already committed
+  try {
+    // Parent confirmation
+    await resend.emails.send({
+      from: "All Star Kids Academy <no-reply@allstarkidsacademyga.com>",
+      to: familyInfo.email,
+      subject: "We received your enrollment application!",
+      html: `
+        <h2>Thank you, ${familyInfo.firstName}!</h2>
+        <p>We've received your enrollment application for <strong>${childNames}</strong>.</p>
+        <p>Our team will review your application and be in touch within 3–5 business days to schedule a playdate.</p>
+        <p>If you have any questions, please contact us at <a href="mailto:info@allstarkidsacademyga.com">info@allstarkidsacademyga.com</a>.</p>
+        <br/>
+        <p>— All Star Kids Academy<br/>4518 Covington Hwy, Decatur, GA 30035<br/>(Mon–Fri, 6:00 AM – 6:30 PM)</p>
+      `,
+    });
 
-  // Staff notification
-  await resend.emails.send({
-    from: "ASKA Platform <no-reply@allstarkidsacademyga.com>",
-    to: process.env.ADMIN_EMAIL!,
-    subject: `New enrollment application: ${parentName}`,
-    html: `
-      <h2>New Enrollment Application</h2>
-      <p><strong>Family:</strong> ${parentName}</p>
-      <p><strong>Children:</strong> ${childNames}</p>
-      <p><strong>Programs:</strong> ${children.map((c: { programType: string }) => c.programType).join(", ")}</p>
-      <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
-      <p>Log in to the admin dashboard to review and take action.</p>
-    `,
-  });
+    // Staff notification
+    if (process.env.ADMIN_EMAIL) {
+      await resend.emails.send({
+        from: "ASKA Platform <no-reply@allstarkidsacademyga.com>",
+        to: process.env.ADMIN_EMAIL,
+        subject: `New enrollment application: ${parentName}`,
+        html: `
+          <h2>New Enrollment Application</h2>
+          <p><strong>Family:</strong> ${parentName}</p>
+          <p><strong>Children:</strong> ${childNames}</p>
+          <p><strong>Programs:</strong> ${children.map((c: { programType: string }) => c.programType).join(", ")}</p>
+          <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+          <p>Log in to the admin dashboard to review and take action.</p>
+        `,
+      });
+    }
+  } catch (emailErr) {
+    // Log but don't fail the request — application is already saved
+    console.error("Failed to send enrollment notification emails:", emailErr);
+  }
 
   return NextResponse.json({ success: true, applicationIds: createdApplicationIds });
 }
