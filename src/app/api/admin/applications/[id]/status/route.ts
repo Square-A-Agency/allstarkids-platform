@@ -15,8 +15,9 @@ export async function POST(
   const { id } = await params;
   const { status, rejectionReason } = await req.json();
 
-  if (!status) {
-    return NextResponse.json({ error: "Status is required" }, { status: 400 });
+  const VALID_STATUSES = ["PENDING", "UNDER_REVIEW", "PLAYDATE_SCHEDULED", "ACCEPTED", "REJECTED"];
+  if (!status || !VALID_STATUSES.includes(status)) {
+    return NextResponse.json({ error: "Invalid or missing status" }, { status: 400 });
   }
 
   await prisma.enrollmentApplication.update({

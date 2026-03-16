@@ -1,3 +1,6 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { isAdminUser } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 
 const PROGRAM_LABELS: Record<string, string> = {
@@ -10,6 +13,9 @@ const PROGRAM_LABELS: Record<string, string> = {
 };
 
 export default async function StatsPage() {
+  const { userId } = await auth();
+  if (!isAdminUser(userId)) redirect("/");
+
   const [total, pending, underReview, playdateScheduled, accepted, rejected, allApps] =
     await Promise.all([
       prisma.enrollmentApplication.count(),

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface AdminActionsProps {
   applicationId: string;
@@ -9,6 +10,7 @@ interface AdminActionsProps {
 }
 
 export default function AdminActions({ applicationId, status, childName }: AdminActionsProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +36,7 @@ export default function AdminActions({ applicationId, status, childName }: Admin
         const data = await res.json();
         throw new Error(data.error || "Request failed");
       }
-      window.location.reload();
+      router.refresh();
     } catch (err: any) {
       setError(err.message || "Something went wrong");
       setLoading(false);
@@ -58,7 +60,7 @@ export default function AdminActions({ applicationId, status, childName }: Admin
         const data = await res.json();
         throw new Error(data.error || "Request failed");
       }
-      window.location.reload();
+      router.refresh();
     } catch (err: any) {
       setError(err.message || "Something went wrong");
       setLoading(false);
