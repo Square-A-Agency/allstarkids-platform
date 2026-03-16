@@ -31,7 +31,7 @@ type UploadState = Record<string, "idle" | "uploading" | "done" | "error">;
 
 function validateSsn(ssn: string): boolean {
   const cleaned = ssn.replace(/[-\s]/g, "");
-  return /^\d{9}$/.test(cleaned) || /^\d{3}-\d{2}-\d{4}$/.test(ssn);
+  return /^\d{9}$/.test(cleaned);
 }
 
 export default function Step4PreK({ children, onBack, onNext }: Props) {
@@ -165,6 +165,10 @@ export default function Step4PreK({ children, onBack, onNext }: Props) {
       ...prev,
       [tempId]: { ...prev[tempId], [documentType]: "idle" },
     }));
+    setUploadErrors((prev) => ({
+      ...prev,
+      [tempId]: { ...prev[tempId], [documentType]: "" },
+    }));
   }
 
   function validate(): boolean {
@@ -193,8 +197,10 @@ export default function Step4PreK({ children, onBack, onNext }: Props) {
           childErrors.preKSsnNotProvidedReason = "Please provide a reason for not having an SSN.";
         }
       } else {
-        if (data.preKSsn && !validateSsn(data.preKSsn)) {
-          childErrors.preKSsn = "SSN must be 9 digits or in XXX-XX-XXXX format.";
+        if (!data.preKSsn?.trim()) {
+          childErrors.preKSsn = "SSN is required. If unavailable, check the box above.";
+        } else if (!validateSsn(data.preKSsn)) {
+          childErrors.preKSsn = "SSN must be 9 digits (e.g. 123456789 or 123-45-6789).";
         }
       }
 
