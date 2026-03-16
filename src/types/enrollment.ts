@@ -1,3 +1,13 @@
+export type PreKDocument = {
+  documentType: string;
+  // "BIRTH_CERTIFICATE" | "SSN_CARD" | "MEDICAID_CARD" | "PARENT_DL"
+  // | "PROOF_OF_RESIDENCY" | "PEACH_CARE_CARD" | "FORM_3300" | "FORM_3232"
+  fileName: string;
+  fileUrl: string; // Supabase Storage URL after upload
+  fileSize?: number;
+  mimeType?: string;
+};
+
 export type FamilyInfo = {
   firstName: string;
   lastName: string;
@@ -77,6 +87,18 @@ export type ChildEntry = {
   emergencyContacts?: EmergencyContact[];
   authorizedPickups?: AuthorizedPickup[];
   infantFeedingPlan?: InfantFeedingPlan; // only for INFANT_TODDLER programType
+
+  // Pre-K specific fields (Step 4, only for track === "PRE_K")
+  preKSsn?: string;
+  preKCounty?: string;
+  preKPreviousSchool?: string;
+  preKLastDatePreviousSchool?: string;
+  preKLastHealthScreening?: string; // date string
+  preKDecalPhotoRelease?: boolean;
+  preKDecalGeneralRelease?: boolean;
+  preKSsnNotProvided?: boolean;
+  preKSsnNotProvidedReason?: string;
+  preKDocuments?: PreKDocument[];
 
   // Agreements (Step 4)
   enrollmentStartMonth?: string;

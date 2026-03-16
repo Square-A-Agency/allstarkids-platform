@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Step1FamilyInfo from "@/components/enrollment/Step1FamilyInfo";
 import Step2Children from "@/components/enrollment/Step2Children";
 import Step3Medical from "@/components/enrollment/Step3Medical";
+import Step4PreK from "@/components/enrollment/Step4PreK";
 import Step4Agreements from "@/components/enrollment/Step4Agreements";
 
 export type { FamilyInfo, ChildEntry, EnrollmentWizardState, EmergencyContact, AuthorizedPickup, InfantFeedingPlan, TopicalPreparations } from "@/types/enrollment";
@@ -63,6 +64,31 @@ export default function EnrollPage() {
   const updateChildren = (children: ChildEntry[]) =>
     setState((prev) => ({ ...prev, children }));
 
+  const hasPreKChild = state.children.some((c) => c.track === "PRE_K");
+
+  // Step labels depend on whether there are Pre-K children
+  const stepLabels = hasPreKChild
+    ? ["Family Info", "Children", "Medical", "Pre-K Forms", "Agreements", "Sign & Submit"]
+    : ["Family Info", "Children", "Medical", "Agreements", "Sign & Submit"];
+
+  // Map internal step number (1–6) to display step index (0-based) for the indicator
+  // Internal: 1=Family, 2=Children, 3=Medical, 4=PreK(if prek)/Agreements(if not), 5=Agreements(if prek)/SignSubmit(if not), 6=SignSubmit(if prek)
+  function getDisplayStep(): number {
+    if (hasPreKChild) {
+      // 6 steps: 1→1, 2→2, 3→3, 4→4, 5→5, 6→6
+      return state.step;
+    } else {
+      // 5 steps, but internal steps skip 4 (Pre-K)
+      // Internal 1→display 1, 2→2, 3→3, 5→4, 6→5
+      if (state.step <= 3) return state.step;
+      if (state.step === 5) return 4;
+      if (state.step === 6) return 5;
+      return state.step;
+    }
+  }
+
+  const displayStep = getDisplayStep();
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -75,23 +101,30 @@ export default function EnrollPage() {
     <div>
       {/* Step indicator */}
       <div className="mb-8">
-        <div className="flex items-center gap-2 text-sm">
-          {["Family Info", "Children", "Medical", "Agreements", "Sign & Submit"].map((label, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
-                ${state.step === i + 1
-                  ? "bg-blue-600 text-white"
-                  : state.step > i + 1
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-200 text-gray-500"}`}>
-                {state.step > i + 1 ? "✓" : i + 1}
+        <div className="flex items-center gap-2 text-sm flex-wrap">
+          {stepLabels.map((label, i) => {
+            const stepNum = i + 1;
+            const isActive = displayStep === stepNum;
+            const isComplete = displayStep > stepNum;
+            return (
+              <div key={i} className="flex items-center gap-2">
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
+                    ${isActive
+                      ? "bg-blue-600 text-white"
+                      : isComplete
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200 text-gray-500"}`}
+                >
+                  {isComplete ? "✓" : stepNum}
+                </div>
+                <span className={isActive ? "font-medium text-blue-700" : "text-gray-400"}>
+                  {label}
+                </span>
+                {i < stepLabels.length - 1 && <span className="text-gray-300">›</span>}
               </div>
-              <span className={state.step === i + 1 ? "font-medium text-blue-700" : "text-gray-400"}>
-                {label}
-              </span>
-              {i < 4 && <span className="text-gray-300">›</span>}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -119,20 +152,41 @@ export default function EnrollPage() {
           children={state.children}
           familyInfo={state.familyInfo}
           onBack={() => goToStep(2)}
-          onNext={(children) => { updateChildren(children); goToStep(4); }}
+          onNext={(children) => {
+            updateChildren(children);
+            goToStep(hasPreKChild ? 4 : 5);
+          }}
         />
       )}
-      {state.step === 4 && (
-        <Step4Agreements
+      {state.step === 4 && hasPreKChild && (
+        <Step4PreK
           children={state.children}
           onBack={() => goToStep(3)}
-          onNext={(children) => { updateChildren(children); goToStep(5); }}
+          onNext={(children) => {
+            updateChildren(children);
+            goToStep(5);
+          }}
         />
       )}
       {state.step === 5 && (
+        <Step4Agreements
+          children={state.children}
+          onBack={() => goToStep(hasPreKChild ? 4 : 3)}
+          onNext={(children) => {
+            updateChildren(children);
+            goToStep(6);
+          }}
+        />
+      )}
+      {state.step === 6 && (
         <div className="text-center py-20 text-gray-400">
-          <p className="text-lg font-medium">Step 5: Sign &amp; Submit — coming soon</p>
-          <button onClick={() => goToStep(4)} className="mt-4 text-blue-600 hover:underline text-sm">← Back</button>
+          <p className="text-lg font-medium">Step 6: Sign &amp; Submit — coming soon</p>
+          <button
+            onClick={() => goToStep(5)}
+            className="mt-4 text-blue-600 hover:underline text-sm"
+          >
+            ← Back
+          </button>
         </div>
       )}
     </div>
