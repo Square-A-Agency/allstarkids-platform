@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -15,12 +14,18 @@ export default function Home() {
           4518 Covington Hwy, Decatur, GA 30035 · (404) 284-2327
         </p>
         <div className="flex gap-4 justify-center">
-          <Button asChild size="lg">
-            <Link href="/sign-up">Start Enrollment</Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link href="/sign-in">Parent Login</Link>
-          </Button>
+          <Link
+            href="/sign-up"
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:opacity-90 h-9"
+          >
+            Start Enrollment
+          </Link>
+          <Link
+            href="/sign-in"
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium transition-all hover:bg-muted h-9"
+          >
+            Parent Login
+          </Link>
         </div>
       </div>
     </main>
