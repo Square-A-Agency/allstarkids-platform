@@ -54,7 +54,7 @@ export function getProgramTypeFromAge(dateOfBirth: Date): ProgramType {
 
   if (ageAtSept1 === 0) return ProgramType.INFANT;
   if (ageAtSept1 === 1) return ProgramType.TODDLER;
-  if (ageAtSept1 === 2) return ProgramType.TODDLER;
+  if (ageAtSept1 === 2) return ProgramType.TODDLER; // Age 2 at Sept 1 = 24–36 months — still within Toddler room (12–24 months), not yet Preschool
   if (ageAtSept1 === 3) return ProgramType.PRESCHOOL;
   if (ageAtSept1 === 4) return ProgramType.PRE_K;
   return ProgramType.AFTER_SCHOOL;

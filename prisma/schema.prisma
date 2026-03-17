@@ -163,7 +163,7 @@ model EnrollmentApplication {
   transportAuthorizedPerson  String?
   transportFallbackProcedure String?
 
-  // ── Infant feeding (only for ages 1–2)
+  // ── Infant feeding (only for INFANT and TODDLER programs — ages 8 weeks–24 months)
   infantFeedingPlan Json?
 
   // ── Pre-K specific fields
