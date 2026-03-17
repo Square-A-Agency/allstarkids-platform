@@ -56,5 +56,10 @@ if (!input || !output) {
   process.exit(1)
 }
 
-calibrate(path.resolve(input), path.resolve(output), pageStr ? parseInt(pageStr) : 0)
+const pageIndex = pageStr ? Number(pageStr) : 0
+if (pageStr && isNaN(pageIndex)) {
+  console.error(`Invalid page number: "${pageStr}"`)
+  process.exit(1)
+}
+calibrate(path.resolve(input), path.resolve(output), pageIndex)
   .catch(err => { console.error(err); process.exit(1) })
