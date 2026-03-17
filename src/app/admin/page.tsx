@@ -21,7 +21,8 @@ const statusLabels: Record<string, string> = {
 };
 
 const PROGRAM_LABELS: Record<string, string> = {
-  INFANT_TODDLER: "Infant & Toddler",
+  INFANT: "Infant (8 weeks–12 months)",
+  TODDLER: "Toddler (12–24 months)",
   PRESCHOOL: "Preschool",
   PRE_K: "Pre-K Classroom",
   AFTER_SCHOOL: "After-School Care",

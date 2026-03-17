@@ -10,12 +10,13 @@ datasource db {
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 enum ProgramType {
-  INFANT_TODDLER // Ages 1–2
-  PRESCHOOL // Ages 3–4
-  PRE_K // Ages 4–5 (Georgia state Pre-K)
-  AFTER_SCHOOL // Ages 5–12
+  INFANT      // Ages 8 weeks–12 months
+  TODDLER     // Ages 12–24 months
+  PRESCHOOL   // Ages 3–4
+  PRE_K       // Ages 4–5 (Georgia state Pre-K)
+  AFTER_SCHOOL     // Ages 5–12
   SUMMER_CAMP_EAGLETS // Ages 5–7
-  SUMMER_CAMP_EAGLES // Ages 8–12
+  SUMMER_CAMP_EAGLES  // Ages 8–12
 }
 
 enum ApplicationStatus {

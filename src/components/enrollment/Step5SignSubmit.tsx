@@ -10,7 +10,8 @@ type Props = {
 };
 
 const PROGRAM_LABELS: Record<string, string> = {
-  INFANT_TODDLER: "Infant & Toddler (Ages 1–2)",
+  INFANT: "Infant (8 weeks–12 months)",
+  TODDLER: "Toddler (12–24 months)",
   PRESCHOOL: "Preschool (Ages 3–4)",
   PRE_K: "Pre-K Classroom (Ages 4–5)",
   AFTER_SCHOOL: "After-School Care (Ages 5–12)",

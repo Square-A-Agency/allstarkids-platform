@@ -51,7 +51,7 @@ function initChild(child: ChildEntry): ChildEntry {
     emergencyContacts: child.emergencyContacts ?? defaultEmergencyContacts(),
     authorizedPickups: child.authorizedPickups ?? defaultAuthorizedPickups(),
     infantFeedingPlan:
-      child.programType === "INFANT_TODDLER"
+      child.programType === "INFANT" || child.programType === "TODDLER"
         ? child.infantFeedingPlan ?? defaultInfantFeedingPlan()
         : child.infantFeedingPlan,
     doctorName: child.doctorName ?? "",
@@ -412,7 +412,7 @@ export default function Step3Medical({ children, familyInfo, onBack, onNext }: P
       </div>
 
       {/* Section D: Infant Feeding Plan */}
-      {child.programType === "INFANT_TODDLER" && (
+      {(child.programType === "INFANT" || child.programType === "TODDLER") && (
         <div className={sectionClass}>
           <h3 className={sectionHeading}>D. Infant Feeding Plan</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

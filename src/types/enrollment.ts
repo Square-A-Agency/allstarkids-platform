@@ -86,7 +86,7 @@ export type ChildEntry = {
   legalGuardian?: string;
   emergencyContacts?: EmergencyContact[];
   authorizedPickups?: AuthorizedPickup[];
-  infantFeedingPlan?: InfantFeedingPlan; // only for INFANT_TODDLER programType
+  infantFeedingPlan?: InfantFeedingPlan; // only for INFANT and TODDLER programType
 
   // Pre-K specific fields (Step 4, only for track === "PRE_K")
   preKSsn?: string;

@@ -52,14 +52,17 @@ export function getProgramTypeFromAge(dateOfBirth: Date): ProgramType {
       ? 1
       : 0);
 
-  if (ageAtSept1 <= 2) return ProgramType.INFANT_TODDLER;
+  if (ageAtSept1 === 0) return ProgramType.INFANT;
+  if (ageAtSept1 === 1) return ProgramType.TODDLER;
+  if (ageAtSept1 === 2) return ProgramType.TODDLER;
   if (ageAtSept1 === 3) return ProgramType.PRESCHOOL;
   if (ageAtSept1 === 4) return ProgramType.PRE_K;
   return ProgramType.AFTER_SCHOOL;
 }
 
 export const PROGRAM_LABELS: Record<ProgramType, string> = {
-  INFANT_TODDLER: "Infant & Toddler (Ages 1–2)",
+  INFANT: "Infant (8 weeks–12 months)",
+  TODDLER: "Toddler (12–24 months)",
   PRESCHOOL: "Preschool (Ages 3–4)",
   PRE_K: "Pre-K Classroom (Ages 4–5, Georgia Pre-K)",
   AFTER_SCHOOL: "After-School Care (Ages 5–12)",

@@ -98,7 +98,7 @@ export async function POST(req: Request) {
         transportAuthorizedPerson: child.transportAuthorizedPerson || null,
         transportFallbackProcedure: child.transportFallbackProcedure || null,
 
-        // Infant feeding (JSON, only for INFANT_TODDLER)
+        // Infant feeding (JSON, only for INFANT and TODDLER programs)
         infantFeedingPlan: child.infantFeedingPlan || null,
 
         // Schedule
