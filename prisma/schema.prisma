@@ -39,6 +39,12 @@ enum LivingArrangement {
   OTHER
 }
 
+enum DocumentGenerationStatus {
+  PENDING
+  SUCCESS
+  ERROR
+}
+
 // ─── Family Account ───────────────────────────────────────────────────────────
 
 model Family {
@@ -218,6 +224,8 @@ model ApplicationDocument {
   fileUrl  String // Supabase Storage URL
   fileSize Int?
   mimeType String?
+  generationStatus  DocumentGenerationStatus @default(PENDING)
+  generationError   String?
 
   @@map("application_documents")
 }
