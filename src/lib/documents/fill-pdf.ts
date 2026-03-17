@@ -26,7 +26,7 @@ export async function fillPdf(pdfBytes: Uint8Array, fields: FieldEntry[]): Promi
       page.drawText('X', {
         x: field.x,
         y: field.y,
-        size: 10,
+        size: DEFAULT_FONT_SIZE,
         font,
         color: TEXT_COLOR,
       })

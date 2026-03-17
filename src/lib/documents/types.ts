@@ -1,4 +1,4 @@
-import type { ProgramType, LivingArrangement } from '@/generated/prisma'
+import type { ProgramType, LivingArrangement, ApplicationTrack } from '@/generated/prisma'
 
 export type FieldEntry =
   | { type: 'text';     page: number; x: number; y: number; value: string; fontSize?: number }
@@ -52,7 +52,7 @@ export type ApplicationData = {
     employer: string | null
     employerAddress: string | null
   }
-  track: 'UNIVERSAL' | 'PRE_K'
+  track: ApplicationTrack
   livingArrangement: LivingArrangement | null
   legalGuardian: LivingArrangement | null
   pickups: Array<{ name: string; address: string; phone: string; relationship: string; relationshipToParent: string }>
