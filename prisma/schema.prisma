@@ -227,5 +227,6 @@ model ApplicationDocument {
   generationStatus  DocumentGenerationStatus @default(PENDING)
   generationError   String?
 
+  @@unique([applicationId, documentType])
   @@map("application_documents")
 }

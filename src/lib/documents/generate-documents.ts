@@ -57,7 +57,8 @@ async function getMap(docType: string): Promise<(data: ApplicationData) => Field
   const modulePath = MAP_REGISTRY[docType]
   if (!modulePath) throw new Error(`No map registered for document type: ${docType}`)
   const mod = await import(modulePath)
-  return mod.default ?? mod[Object.keys(mod)[0]]
+  if (typeof mod.default !== 'function') throw new Error(`Map module for "${docType}" must use export default`)
+  return mod.default
 }
 
 // ── PDF file loading ───────────────────────────────────────────────────────────
@@ -120,7 +121,7 @@ async function generateAndStore(
 
   await prisma.applicationDocument.upsert({
     where: { applicationId_documentType: { applicationId, documentType: docType } },
-    update: { generationStatus, generationError, fileUrl, fileName: `${docType}.pdf`, mimeType: 'application/pdf' },
+    update: { generationStatus, generationError, ...(fileUrl ? { fileUrl, fileName: `${docType}.pdf`, mimeType: 'application/pdf' } : {}) },
     create: { applicationId, documentType: docType, fileName: `${docType}.pdf`, fileUrl, mimeType: 'application/pdf', generationStatus, generationError },
   })
 }
