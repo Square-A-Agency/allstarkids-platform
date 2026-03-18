@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
+import { generateApplicationDocuments } from "@/lib/documents/generate-documents";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -138,6 +139,13 @@ export async function POST(req: Request) {
           mimeType: doc.mimeType || null,
         })),
       });
+    }
+
+    // Generate filled PDF documents (non-fatal — submission succeeds even if generation fails)
+    try {
+      await generateApplicationDocuments(application.id);
+    } catch (err) {
+      console.error(`Document generation failed for application ${application.id}:`, err);
     }
   }
 
