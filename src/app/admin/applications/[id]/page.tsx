@@ -3,7 +3,9 @@ import { isAdminUser } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
 import AdminActions from "@/components/admin/AdminActions";
+import RegenerateButton from "@/components/admin/RegenerateButton";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -40,6 +42,31 @@ const DOC_LABELS: Record<string, string> = {
   PEACH_CARE_CARD: "Peach Care Card",
   FORM_3300: "Form 3300 (Eye, Ear, Dental & Nutrition)",
   FORM_3232: "Form 3232 (DHR Immunization Certificate)",
+  // Generated document types
+  enrollment_form: "Enrollment Form",
+  authorization_topical: "Authorization — Topical Preparations",
+  no_liability: "No Liability Agreement",
+  infant_feeding: "Infant Feeding Plan",
+  transportation: "Transportation Agreement",
+  vehicle_emergency: "Vehicle Emergency Card",
+  prek_child_reg: "Pre-K Child Registration",
+  ssn_information: "SSN Information",
+  caps_referral: "CAPS Referral",
+};
+
+function formatDocType(documentType: string): string {
+  return (
+    DOC_LABELS[documentType] ??
+    documentType
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+}
+
+const generationStatusColors: Record<string, string> = {
+  SUCCESS: "bg-green-100 text-green-800",
+  PENDING: "bg-yellow-100 text-yellow-800",
+  ERROR: "bg-red-100 text-red-800",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -85,6 +112,23 @@ export default async function ApplicationDetailPage({
   const authorizedPickups = (application.authorizedPickups as any[]) ?? [];
   const topicalPreparations = (application.topicalPreparations as Record<string, boolean>) ?? {};
   const infantFeedingPlan = application.infantFeedingPlan as Record<string, any> | null;
+
+  // Generate signed URLs for SUCCESS documents
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const signedUrls: Record<string, string> = {};
+  for (const doc of documents) {
+    if (doc.generationStatus === "SUCCESS" && doc.fileUrl) {
+      const { data } = await supabaseAdmin.storage
+        .from("documents")
+        .createSignedUrl(doc.fileUrl, 60);
+      if (data?.signedUrl) {
+        signedUrls[doc.id] = data.signedUrl;
+      }
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -382,30 +426,80 @@ export default async function ApplicationDetailPage({
       )}
 
       {/* Documents */}
-      {documents.length > 0 && (
-        <Section title="Documents">
-          <div className="space-y-2">
-            {documents.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between bg-gray-50 rounded p-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {DOC_LABELS[doc.documentType] ?? doc.documentType}
-                  </p>
-                  <p className="text-xs text-gray-500">{doc.fileName}</p>
-                </div>
-                <a
-                  href={doc.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  View
-                </a>
-              </div>
-            ))}
+      <Section title="Documents">
+        {documents.length === 0 ? (
+          <p className="text-sm text-gray-400">No documents generated yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead>
+                <tr>
+                  <th className="py-2 pr-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    Document
+                  </th>
+                  <th className="py-2 pr-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    Status
+                  </th>
+                  <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {documents.map((doc) => (
+                  <tr key={doc.id}>
+                    <td className="py-3 pr-4">
+                      <p className="font-medium text-gray-900">
+                        {formatDocType(doc.documentType)}
+                      </p>
+                      <p className="text-xs text-gray-500">{doc.fileName}</p>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          generationStatusColors[doc.generationStatus] ??
+                          "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {doc.generationStatus === "SUCCESS"
+                          ? "Success"
+                          : doc.generationStatus === "PENDING"
+                          ? "Pending"
+                          : "Error"}
+                      </span>
+                      {doc.generationStatus === "ERROR" && doc.generationError && (
+                        <p
+                          className="text-xs text-red-600 mt-1 max-w-xs truncate"
+                          title={doc.generationError}
+                        >
+                          {doc.generationError}
+                        </p>
+                      )}
+                    </td>
+                    <td className="py-3">
+                      {doc.generationStatus === "SUCCESS" && signedUrls[doc.id] ? (
+                        <a
+                          href={signedUrls[doc.id]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          Download
+                        </a>
+                      ) : (
+                        <RegenerateButton
+                          applicationId={application.id}
+                          documentType={doc.documentType}
+                        />
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </Section>
-      )}
+        )}
+      </Section>
 
       {/* Admin Notes */}
       {application.adminNotes && (
