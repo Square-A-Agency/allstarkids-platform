@@ -1,4 +1,4 @@
-import type { ProgramType, LivingArrangement, ApplicationTrack } from '@/generated/prisma'
+import type { ProgramType, LivingArrangement, ApplicationTrack } from '@/generated/prisma/enums'
 
 export type FieldEntry =
   | { type: 'text';     page: number; x: number; y: number; value: string; fontSize?: number }
