@@ -118,17 +118,20 @@ export default async function ApplicationDetailPage({
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-  const signedUrls: Record<string, string> = {};
-  for (const doc of documents) {
-    if (doc.generationStatus === "SUCCESS" && doc.fileUrl) {
+  const successDocs = documents.filter(
+    (doc) => doc.generationStatus === "SUCCESS" && doc.fileUrl
+  );
+  const signedUrlEntries = await Promise.all(
+    successDocs.map(async (doc) => {
       const { data } = await supabaseAdmin.storage
         .from("documents")
         .createSignedUrl(doc.fileUrl, 60);
-      if (data?.signedUrl) {
-        signedUrls[doc.id] = data.signedUrl;
-      }
-    }
-  }
+      return [doc.id, data?.signedUrl ?? null] as const;
+    })
+  );
+  const signedUrls: Record<string, string> = Object.fromEntries(
+    signedUrlEntries.filter((e): e is [string, string] => e[1] !== null)
+  );
 
   return (
     <div className="space-y-6">

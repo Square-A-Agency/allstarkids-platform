@@ -27,6 +27,7 @@ export default function RegenerateButton({ applicationId, documentType }: Regene
         setLoading(false)
         return
       }
+      setLoading(false)
       window.location.reload()
     } catch (err) {
       alert(`Regeneration failed: ${err instanceof Error ? err.message : String(err)}`)
