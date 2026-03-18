@@ -71,9 +71,11 @@ type PrismaApplication = {
 }
 
 function formatDate(date: Date): string {
-  const mm = String(date.getMonth() + 1).padStart(2, '0')
-  const dd = String(date.getDate()).padStart(2, '0')
-  const yyyy = date.getFullYear()
+  // Use UTC accessors — Prisma stores DateTime as UTC midnight; local accessors
+  // would roll back one day in timezones behind UTC (e.g. America/New_York).
+  const mm = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(date.getUTCDate()).padStart(2, '0')
+  const yyyy = date.getUTCFullYear()
   return `${mm}/${dd}/${yyyy}`
 }
 
@@ -111,13 +113,13 @@ export function assembleApplicationData(app: PrismaApplication): ApplicationData
       firstName: app.family.firstName,
       lastName: app.family.lastName,
       phone: app.family.phone,
-      workPhone: null,
+      workPhone: null,       // Family schema has no workPhone for parent1 — gap to address in future schema update
       address: app.family.address,
       city: app.family.city,
       state: app.family.state,
       zip: app.family.zip,
-      employer: null,
-      employerAddress: null,
+      employer: null,        // Family schema has no employer for parent1 — gap to address in future schema update
+      employerAddress: null, // Family schema has no employerAddress for parent1 — gap to address in future schema update
       email: app.family.email,
     },
     parent2: {

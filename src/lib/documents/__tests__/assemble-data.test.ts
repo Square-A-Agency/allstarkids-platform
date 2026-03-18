@@ -46,7 +46,7 @@ const mockApplication = {
     firstName: 'Emma',
     lastName: 'Smith',
     middleName: null,
-    dateOfBirth: new Date(2022, 5, 15), // Note: months are 0-indexed
+    dateOfBirth: new Date('2022-06-15T00:00:00Z'), // UTC midnight — matches Prisma DateTime storage
     sex: 'F',
     programType: 'PRESCHOOL' as const,
     nameSuffix: null,
