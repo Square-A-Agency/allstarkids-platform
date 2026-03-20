@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import AdminActions from "@/components/admin/AdminActions";
 import RegenerateButton from "@/components/admin/RegenerateButton";
+import GenerateAllButton from "@/components/admin/GenerateAllButton";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -430,9 +431,15 @@ export default async function ApplicationDetailPage({
 
       {/* Documents */}
       <Section title="Documents">
-        {documents.length === 0 ? (
-          <p className="text-sm text-gray-400">No documents generated yet.</p>
-        ) : (
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm text-gray-500">
+            {documents.length === 0
+              ? 'No documents generated yet.'
+              : `${documents.filter(d => d.generationStatus === 'SUCCESS').length} of ${documents.length} generated successfully.`}
+          </p>
+          <GenerateAllButton applicationId={application.id} />
+        </div>
+        {documents.length === 0 ? null : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 text-sm">
               <thead>
