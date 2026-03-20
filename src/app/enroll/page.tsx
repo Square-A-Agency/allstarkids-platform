@@ -95,7 +95,10 @@ export default function EnrollPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-gray-500">Loading your profile...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          <p className="text-slate-500 font-medium">Loading your profile...</p>
+        </div>
       </div>
     );
   }
@@ -103,31 +106,45 @@ export default function EnrollPage() {
   return (
     <div>
       {/* Step indicator */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-sm flex-wrap">
+      <div className="mb-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+        <div className="flex items-center gap-1 overflow-x-auto pb-1">
           {stepLabels.map((label, i) => {
             const stepNum = i + 1;
             const isActive = displayStep === stepNum;
             const isComplete = displayStep > stepNum;
             return (
-              <div key={i} className="flex items-center gap-2">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
-                    ${isActive
-                      ? "bg-blue-600 text-white"
-                      : isComplete
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-200 text-gray-500"}`}
-                >
-                  {isComplete ? "✓" : stepNum}
+              <div key={i} className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                      isActive
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-200"
+                        : isComplete
+                        ? "bg-green-500 text-white"
+                        : "bg-slate-100 text-slate-400"
+                    }`}
+                  >
+                    {isComplete ? "✓" : stepNum}
+                  </div>
+                  <span className={`text-sm font-semibold whitespace-nowrap ${
+                    isActive ? "text-blue-700" : isComplete ? "text-green-600" : "text-slate-400"
+                  }`}>
+                    {label}
+                  </span>
                 </div>
-                <span className={isActive ? "font-medium text-blue-700" : "text-gray-400"}>
-                  {label}
-                </span>
-                {i < stepLabels.length - 1 && <span className="text-gray-300">›</span>}
+                {i < stepLabels.length - 1 && (
+                  <div className={`w-6 h-0.5 mx-1 rounded-full ${isComplete ? "bg-green-300" : "bg-slate-200"}`} />
+                )}
               </div>
             );
           })}
+        </div>
+        {/* Progress bar */}
+        <div className="mt-3 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
+            style={{ width: `${((displayStep - 1) / (stepLabels.length - 1)) * 100}%` }}
+          />
         </div>
       </div>
 

@@ -59,97 +59,109 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 py-12 px-4">
+    <div className="min-h-screen bg-slate-50 py-10 px-4">
       <div className="max-w-2xl mx-auto">
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-900">Welcome to All Star Kids Academy</h1>
-          <p className="text-gray-600 mt-2">Let&apos;s set up your family profile to get started.</p>
+          <div className="inline-flex items-center justify-center bg-white rounded-2xl p-4 shadow-md border border-slate-100 mb-5">
+            <img src="/logo.webp" alt="All Star Kids Academy" className="h-16 w-auto object-contain" />
+          </div>
+          <h1 className="text-3xl font-black text-slate-800">Set Up Your Family Profile</h1>
+          <p className="text-slate-500 mt-2">This info pre-fills your enrollment form — takes 2 minutes.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Primary Parent */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Primary Parent / Guardian</CardTitle>
-              <CardDescription>Your contact information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-blue-900 px-6 py-4">
+              <h2 className="text-base font-bold text-white">Primary Parent / Guardian</h2>
+              <p className="text-xs text-blue-200 mt-0.5">Your contact information</p>
+            </div>
+            <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName">First Name *</Label>
-                  <Input id="firstName" name="firstName" value={form.firstName} onChange={handleChange} required />
+                  <Label htmlFor="firstName" className="text-sm font-semibold text-slate-700">First Name *</Label>
+                  <Input id="firstName" name="firstName" value={form.firstName} onChange={handleChange} required className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="lastName">Last Name *</Label>
-                  <Input id="lastName" name="lastName" value={form.lastName} onChange={handleChange} required />
+                  <Label htmlFor="lastName" className="text-sm font-semibold text-slate-700">Last Name *</Label>
+                  <Input id="lastName" name="lastName" value={form.lastName} onChange={handleChange} required className="mt-1" />
                 </div>
               </div>
               <div>
-                <Label htmlFor="email">Email *</Label>
-                <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
+                <Label htmlFor="email" className="text-sm font-semibold text-slate-700">Email *</Label>
+                <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} required className="mt-1" />
               </div>
               <div>
-                <Label htmlFor="phone">Phone Number *</Label>
-                <Input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} required placeholder="(404) 555-0100" />
+                <Label htmlFor="phone" className="text-sm font-semibold text-slate-700">Phone Number *</Label>
+                <Input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} required placeholder="(404) 555-0100" className="mt-1" />
               </div>
-              <Separator />
-              <div>
-                <Label htmlFor="address">Street Address *</Label>
-                <Input id="address" name="address" value={form.address} onChange={handleChange} required />
+              <div className="border-t border-slate-100 pt-4">
+                <Label htmlFor="address" className="text-sm font-semibold text-slate-700">Street Address *</Label>
+                <Input id="address" name="address" value={form.address} onChange={handleChange} required className="mt-1" />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-1">
-                  <Label htmlFor="city">City *</Label>
-                  <Input id="city" name="city" value={form.city} onChange={handleChange} required />
+                  <Label htmlFor="city" className="text-sm font-semibold text-slate-700">City *</Label>
+                  <Input id="city" name="city" value={form.city} onChange={handleChange} required className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="state">State *</Label>
-                  <Input id="state" name="state" value={form.state} onChange={handleChange} required />
+                  <Label htmlFor="state" className="text-sm font-semibold text-slate-700">State *</Label>
+                  <Input id="state" name="state" value={form.state} onChange={handleChange} required className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="zip">ZIP *</Label>
-                  <Input id="zip" name="zip" value={form.zip} onChange={handleChange} required />
+                  <Label htmlFor="zip" className="text-sm font-semibold text-slate-700">ZIP *</Label>
+                  <Input id="zip" name="zip" value={form.zip} onChange={handleChange} required className="mt-1" />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Second Parent (optional) */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Second Parent / Guardian <span className="text-sm font-normal text-gray-400">(optional)</span></CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-slate-700 px-6 py-4">
+              <h2 className="text-base font-bold text-white">Second Parent / Guardian</h2>
+              <p className="text-xs text-slate-300 mt-0.5">Optional</p>
+            </div>
+            <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="parent2FirstName">First Name</Label>
-                  <Input id="parent2FirstName" name="parent2FirstName" value={form.parent2FirstName} onChange={handleChange} />
+                  <Label htmlFor="parent2FirstName" className="text-sm font-semibold text-slate-700">First Name</Label>
+                  <Input id="parent2FirstName" name="parent2FirstName" value={form.parent2FirstName} onChange={handleChange} className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="parent2LastName">Last Name</Label>
-                  <Input id="parent2LastName" name="parent2LastName" value={form.parent2LastName} onChange={handleChange} />
+                  <Label htmlFor="parent2LastName" className="text-sm font-semibold text-slate-700">Last Name</Label>
+                  <Input id="parent2LastName" name="parent2LastName" value={form.parent2LastName} onChange={handleChange} className="mt-1" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="parent2Email">Email</Label>
-                  <Input id="parent2Email" name="parent2Email" type="email" value={form.parent2Email} onChange={handleChange} />
+                  <Label htmlFor="parent2Email" className="text-sm font-semibold text-slate-700">Email</Label>
+                  <Input id="parent2Email" name="parent2Email" type="email" value={form.parent2Email} onChange={handleChange} className="mt-1" />
                 </div>
                 <div>
-                  <Label htmlFor="parent2Phone">Phone</Label>
-                  <Input id="parent2Phone" name="parent2Phone" type="tel" value={form.parent2Phone} onChange={handleChange} />
+                  <Label htmlFor="parent2Phone" className="text-sm font-semibold text-slate-700">Phone</Label>
+                  <Input id="parent2Phone" name="parent2Phone" type="tel" value={form.parent2Phone} onChange={handleChange} className="mt-1" />
                 </div>
               </div>
               <div>
-                <Label htmlFor="parent2Employer">Employer</Label>
-                <Input id="parent2Employer" name="parent2Employer" value={form.parent2Employer} onChange={handleChange} />
+                <Label htmlFor="parent2Employer" className="text-sm font-semibold text-slate-700">Employer</Label>
+                <Input id="parent2Employer" name="parent2Employer" value={form.parent2Employer} onChange={handleChange} className="mt-1" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-medium">
+              {error}
+            </div>
+          )}
 
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full h-12 text-base font-bold bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-200 transition-all hover:scale-[1.02]"
+            disabled={loading}
+          >
             {loading ? "Saving..." : "Continue to Dashboard →"}
           </Button>
         </form>

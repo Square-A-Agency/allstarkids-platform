@@ -2,25 +2,43 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { isAdminUser } from "@/lib/admin-auth";
 import Link from "next/link";
+import Image from "next/image";
+import { UserButton } from "@clerk/nextjs";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
   if (!isAdminUser(userId)) redirect("/");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-blue-900 text-white px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold">All Star Kids Academy</h1>
-          <p className="text-xs text-blue-200">Admin Dashboard</p>
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-gradient-to-r from-blue-950 to-blue-900 text-white shadow-lg sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-white rounded-lg p-1 shadow-sm">
+              <Image src="/logo.webp" alt="All Star Kids Academy" width={48} height={35} className="object-contain" />
+            </div>
+            <div>
+              <p className="text-sm font-bold leading-tight">All Star Kids Academy</p>
+              <p className="text-xs text-blue-300">Admin Dashboard</p>
+            </div>
+          </div>
+          <nav className="flex items-center gap-1">
+            <Link href="/admin" className="text-sm font-semibold text-blue-200 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors">
+              Applications
+            </Link>
+            <Link href="/admin/stats" className="text-sm font-semibold text-blue-200 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors">
+              Stats
+            </Link>
+            <Link href="/dashboard" className="text-sm font-semibold text-blue-200 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors">
+              Family Portal
+            </Link>
+            <div className="ml-2">
+              <UserButton />
+            </div>
+          </nav>
         </div>
-        <nav className="flex items-center gap-4 text-sm">
-          <Link href="/admin" className="text-blue-200 hover:text-white">Applications</Link>
-          <Link href="/admin/stats" className="text-blue-200 hover:text-white">Stats</Link>
-          <Link href="/" className="text-blue-200 hover:text-white">← Family Portal</Link>
-        </nav>
       </header>
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {children}
       </main>
     </div>
