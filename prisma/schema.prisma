@@ -257,7 +257,7 @@ model StaffApplication {
   refOnePhone  String
   refTwoName   String
   refTwoPhone  String
-  coverNote    String
+  coverNote    String         @db.Text
   resumeUrl    String?
   linkedinUrl  String?
   status       StaffApplicationStatus @default(PENDING)
