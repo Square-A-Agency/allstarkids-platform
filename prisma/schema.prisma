@@ -230,3 +230,37 @@ model ApplicationDocument {
   @@unique([applicationId, documentType])
   @@map("application_documents")
 }
+
+// ─── Staff Applications ───────────────────────────────────────────────────────
+
+enum StaffApplicationStatus {
+  PENDING
+  UNDER_REVIEW
+  INTERVIEW_SCHEDULED
+  HIRED
+  REJECTED
+}
+
+model StaffApplication {
+  id           String                 @id @default(cuid())
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  role         String
+  firstName    String
+  lastName     String
+  email        String
+  phone        String
+  yearsExp     Int
+  availability String
+  refOneName   String
+  refOnePhone  String
+  refTwoName   String
+  refTwoPhone  String
+  coverNote    String
+  resumeUrl    String?
+  linkedinUrl  String?
+  status       StaffApplicationStatus @default(PENDING)
+
+  @@map("staff_applications")
+}
