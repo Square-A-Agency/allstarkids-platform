@@ -16,11 +16,11 @@ const isPublicRoute = createRouteMatcher([
 ])
 
 export default clerkMiddleware(async (auth, request) => {
-  const host = request.headers.get('host') ?? ''
+  const hostname = (request.headers.get('host') ?? '').split(':')[0]
   const { pathname } = new URL(request.url)
 
   // Subdomain rewrite: careers.allstarkidsacademyga.com → /careers/*
-  if (CAREERS_HOSTS.some((h) => host === h)) {
+  if (CAREERS_HOSTS.some((h) => hostname === h)) {
     if (!pathname.startsWith('/careers')) {
       const rewriteUrl = new URL(`/careers${pathname === '/' ? '' : pathname}`, request.url)
       return NextResponse.rewrite(rewriteUrl)
