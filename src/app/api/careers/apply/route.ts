@@ -11,13 +11,15 @@ import { validateStaffApplicationPayload } from '@/lib/careers'
 export async function POST(req: Request) {
   const formData = await req.formData()
 
+  const rawYearsExp = formData.get('yearsExp')
+
   const payload = {
     role:         formData.get('role'),
     firstName:    formData.get('firstName'),
     lastName:     formData.get('lastName'),
     email:        formData.get('email'),
     phone:        formData.get('phone'),
-    yearsExp:     Number(formData.get('yearsExp')),
+    yearsExp:     rawYearsExp === null || rawYearsExp === '' ? NaN : Number(rawYearsExp),
     availability: formData.get('availability'),
     refOneName:   formData.get('refOneName'),
     refOnePhone:  formData.get('refOnePhone'),
@@ -30,6 +32,14 @@ export async function POST(req: Request) {
   const error = validateStaffApplicationPayload(payload)
   if (error) {
     return NextResponse.json({ error }, { status: 400 })
+  }
+
+  // After validation, types are guaranteed
+  const validated = payload as {
+    role: string; firstName: string; lastName: string; email: string
+    phone: string; yearsExp: number; availability: string
+    refOneName: string; refOnePhone: string; refTwoName: string
+    refTwoPhone: string; coverNote: string; linkedinUrl?: string
   }
 
   // Handle optional resume upload
@@ -48,24 +58,35 @@ export async function POST(req: Request) {
     resumeUrl = data.publicUrl
   }
 
-  await prisma.staffApplication.create({
-    data: {
-      role:         payload.role as string,
-      firstName:    payload.firstName as string,
-      lastName:     payload.lastName as string,
-      email:        payload.email as string,
-      phone:        payload.phone as string,
-      yearsExp:     payload.yearsExp as number,
-      availability: payload.availability as string,
-      refOneName:   payload.refOneName as string,
-      refOnePhone:  payload.refOnePhone as string,
-      refTwoName:   payload.refTwoName as string,
-      refTwoPhone:  payload.refTwoPhone as string,
-      coverNote:    payload.coverNote as string,
-      linkedinUrl:  payload.linkedinUrl as string | undefined,
-      resumeUrl,
-    },
-  })
+  try {
+    await prisma.staffApplication.create({
+      data: {
+        role:         validated.role,
+        firstName:    validated.firstName,
+        lastName:     validated.lastName,
+        email:        validated.email,
+        phone:        validated.phone,
+        yearsExp:     validated.yearsExp,
+        availability: validated.availability,
+        refOneName:   validated.refOneName,
+        refOnePhone:  validated.refOnePhone,
+        refTwoName:   validated.refTwoName,
+        refTwoPhone:  validated.refTwoPhone,
+        coverNote:    validated.coverNote,
+        linkedinUrl:  validated.linkedinUrl,
+        resumeUrl,
+      },
+    })
+  } catch {
+    // If resume was uploaded, clean up the orphaned file
+    if (resumeUrl) {
+      const fileName = resumeUrl.split('/').pop()
+      if (fileName) {
+        await supabase.storage.from('resumes').remove([fileName])
+      }
+    }
+    return NextResponse.json({ error: 'Failed to submit application. Please try again.' }, { status: 500 })
+  }
 
   return NextResponse.json({ success: true })
 }

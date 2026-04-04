@@ -45,6 +45,11 @@ describe('validateStaffApplicationPayload', () => {
   it('returns error when yearsExp is a float', () => {
     expect(validateStaffApplicationPayload({ ...validPayload, yearsExp: 1.5 })).toMatch(/yearsExp/)
   })
+
+  it('returns error for NaN yearsExp', () => {
+    const payload = { ...validPayload, yearsExp: NaN }
+    expect(validateStaffApplicationPayload(payload)).not.toBeNull()
+  })
 })
 
 describe('VALID_STAFF_STATUSES', () => {
