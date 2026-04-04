@@ -14,6 +14,8 @@ export const VALID_STAFF_STATUSES = [
   'REJECTED',
 ] as const
 
+export type StaffApplicationStatus = typeof VALID_STAFF_STATUSES[number]
+
 const REQUIRED_FIELDS = [
   'role', 'firstName', 'lastName', 'email', 'phone',
   'yearsExp', 'availability', 'refOneName', 'refOnePhone',
@@ -22,7 +24,8 @@ const REQUIRED_FIELDS = [
 
 export function validateStaffApplicationPayload(payload: Record<string, unknown>): string | null {
   for (const field of REQUIRED_FIELDS) {
-    if (payload[field] === undefined || payload[field] === null || payload[field] === '') {
+    const value = payload[field]
+    if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
       return `Missing required field: ${field}`
     }
   }
@@ -31,8 +34,8 @@ export function validateStaffApplicationPayload(payload: Record<string, unknown>
     return `Invalid role: must be one of ${STAFF_ROLES.join(', ')}`
   }
 
-  if (typeof payload.yearsExp !== 'number' || payload.yearsExp < 0) {
-    return 'Invalid yearsExp: must be a non-negative number'
+  if (typeof payload.yearsExp !== 'number' || !Number.isInteger(payload.yearsExp) || payload.yearsExp < 0) {
+    return 'Invalid yearsExp: must be a non-negative integer'
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

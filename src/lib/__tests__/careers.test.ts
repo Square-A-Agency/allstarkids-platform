@@ -37,6 +37,14 @@ describe('validateStaffApplicationPayload', () => {
   it('returns error for invalid email format', () => {
     expect(validateStaffApplicationPayload({ ...validPayload, email: 'not-an-email' })).toMatch(/email/)
   })
+
+  it('returns error when required field is whitespace only', () => {
+    expect(validateStaffApplicationPayload({ ...validPayload, firstName: '   ' })).toMatch(/firstName/)
+  })
+
+  it('returns error when yearsExp is a float', () => {
+    expect(validateStaffApplicationPayload({ ...validPayload, yearsExp: 1.5 })).toMatch(/yearsExp/)
+  })
 })
 
 describe('VALID_STAFF_STATUSES', () => {
