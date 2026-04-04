@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { isAdminUser } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import { STAFF_ROLES } from '@/lib/careers'
+import { STAFF_ROLES, VALID_STAFF_STATUSES } from '@/lib/careers'
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING:              'bg-yellow-100 text-yellow-800',
@@ -41,8 +41,12 @@ export default async function StaffApplicationsPage({
 
   const { status: statusFilter, role: roleFilter } = await searchParams
 
+  const validStatus = statusFilter && (VALID_STAFF_STATUSES as readonly string[]).includes(statusFilter)
+    ? statusFilter
+    : undefined
+
   const where = {
-    ...(statusFilter ? { status: statusFilter as any } : {}),
+    ...(validStatus ? { status: validStatus as (typeof VALID_STAFF_STATUSES)[number] } : {}),
     ...(roleFilter ? { role: roleFilter } : {}),
   }
 
