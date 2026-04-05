@@ -24,7 +24,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </div>
           <nav className="flex items-center gap-1">
             <Link href="/admin" className="text-sm font-semibold text-blue-200 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors">
-              Applications
+              Enrollment
+            </Link>
+            <Link href="/admin/staff-applications" className="text-sm font-semibold text-blue-200 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors">
+              Staff Applications
             </Link>
             <Link href="/admin/stats" className="text-sm font-semibold text-blue-200 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors">
               Stats
