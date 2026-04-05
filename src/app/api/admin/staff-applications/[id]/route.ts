@@ -2,7 +2,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { isAdminUser } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@/generated/prisma/client'
 import { NextResponse } from 'next/server'
 import { VALID_STAFF_STATUSES } from '@/lib/careers'
 
