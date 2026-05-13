@@ -9,7 +9,6 @@ import type { ApplicationData, FieldEntry } from './types'
 // ── Document set routing ──────────────────────────────────────────────────────
 
 type DocumentSetParams = {
-  track: 'UNIVERSAL' | 'PRE_K'
   programType: string
   usesTransportation: boolean
   hasSSN: boolean
@@ -17,24 +16,40 @@ type DocumentSetParams = {
 }
 
 export function getDocumentSet(params: DocumentSetParams): string[] {
-  const { track, programType, usesTransportation, hasSSN, needsExtendedDay } = params
+  const { programType, usesTransportation, hasSSN, needsExtendedDay } = params
   const docs: string[] = []
 
-  if (track === 'UNIVERSAL') {
-    docs.push('enrollment_form', 'authorization_topical', 'no_liability')
-    if (programType === 'INFANT' || programType === 'TODDLER') {
-      docs.push('infant_feeding')
-    }
-  } else {
-    // PRE_K
-    docs.push('prek_child_reg', 'authorization_topical', 'no_liability')
-    if (!hasSSN) docs.push('ssn_information')
-    if (needsExtendedDay) docs.push('caps_referral')
+  switch (programType) {
+    case 'INFANT':
+      // Forms 1-4, 8-9
+      docs.push('enrollment_form', 'authorization_topical', 'no_liability', 'infant_feeding')
+      break
+
+    case 'TODDLER':
+    case 'PRESCHOOL':
+      // Forms 1-3, 8-9
+      docs.push('enrollment_form', 'authorization_topical', 'no_liability')
+      break
+
+    case 'PRE_K':
+      // Forms 2-3, 5-9
+      docs.push('authorization_topical', 'no_liability', 'prek_child_reg')
+      if (usesTransportation) docs.push('transportation', 'vehicle_emergency')
+      break
+
+    case 'AFTER_SCHOOL':
+    case 'SUMMER_CAMP_EAGLETS':
+    case 'SUMMER_CAMP_EAGLES':
+    default:
+      // Forms 1-3, 5-6, 8-9
+      docs.push('enrollment_form', 'authorization_topical', 'no_liability')
+      if (usesTransportation) docs.push('transportation', 'vehicle_emergency')
+      break
   }
 
-  if (usesTransportation) {
-    docs.push('transportation', 'vehicle_emergency')
-  }
+  // Conditional forms applicable across all groups
+  if (!hasSSN) docs.push('ssn_information')
+  if (needsExtendedDay) docs.push('caps_referral')
 
   return docs
 }
@@ -137,7 +152,6 @@ export async function generateApplicationDocuments(applicationId: string): Promi
   const data = assembleApplicationData(application as any)
 
   const docTypes = getDocumentSet({
-    track: application.track as 'UNIVERSAL' | 'PRE_K',
     programType: application.child.programType,
     usesTransportation: application.usesTransportation,
     hasSSN: !!(application.preKSsn && application.preKSsn !== ''),

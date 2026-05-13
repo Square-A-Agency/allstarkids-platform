@@ -97,6 +97,16 @@ export default async function Home() {
           </Link>
         </div>
 
+        {/* Staff apply link */}
+        <div className="mt-4 animate-fade-in-up delay-500">
+          <Link
+            href="/careers"
+            className="text-blue-400/70 text-sm font-semibold hover:text-blue-300 transition-colors underline underline-offset-4"
+          >
+            Looking to join our team? View open positions →
+          </Link>
+        </div>
+
         {/* Trust badges */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3 animate-fade-in-up delay-500">
           {["🏫 Licensed & Accredited", "⭐ Georgia Pre-K Provider", "🔒 Secure Enrollment"].map((badge) => (
