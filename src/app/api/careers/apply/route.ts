@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     refTwoPhone: string; coverNote: string; linkedinUrl?: string
   }
 
-  // Handle optional resume upload
+  // Handle optional resume upload — failure does not block submission
   let resumeUrl: string | undefined
   const resumeFile = formData.get('resume') as File | null
   if (resumeFile && resumeFile.size > 0) {
@@ -52,10 +52,11 @@ export async function POST(req: Request) {
       .from('resumes')
       .upload(fileName, resumeFile, { contentType: resumeFile.type })
     if (uploadError) {
-      return NextResponse.json({ error: 'Resume upload failed' }, { status: 500 })
+      console.error('Resume upload failed (non-blocking):', uploadError.message)
+    } else {
+      const { data } = supabase.storage.from('resumes').getPublicUrl(fileName)
+      resumeUrl = data.publicUrl
     }
-    const { data } = supabase.storage.from('resumes').getPublicUrl(fileName)
-    resumeUrl = data.publicUrl
   }
 
   try {
