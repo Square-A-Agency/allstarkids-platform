@@ -53,7 +53,7 @@ export default async function Home() {
 
         {/* Logo card — bouncy scale-in */}
         <div className="mb-8 animate-scale-in">
-          <div className="relative bg-white rounded-3xl p-5 shadow-[0_0_60px_-10px_rgba(59,130,246,0.5)] hover:shadow-[0_0_80px_-10px_rgba(59,130,246,0.7)] transition-shadow duration-500 animate-pulse-glow">
+          <a href="https://allstarkidsacademyga.com" className="relative bg-white rounded-3xl p-5 shadow-[0_0_60px_-10px_rgba(59,130,246,0.5)] hover:shadow-[0_0_80px_-10px_rgba(59,130,246,0.7)] transition-shadow duration-500 animate-pulse-glow block">
             <Image
               src="/logo.webp"
               alt="All Star Kids Academy"
@@ -62,7 +62,7 @@ export default async function Home() {
               className="object-contain w-[210px] h-auto"
               priority
             />
-          </div>
+          </a>
         </div>
 
         {/* Headline — staggered fade up */}

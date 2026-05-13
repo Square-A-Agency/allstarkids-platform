@@ -63,9 +63,9 @@ export default function OnboardingPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center bg-white rounded-2xl p-4 shadow-md border border-slate-100 mb-5">
+          <a href="https://allstarkidsacademyga.com" className="inline-flex items-center justify-center bg-white rounded-2xl p-4 shadow-md border border-slate-100 mb-5">
             <img src="/logo.webp" alt="All Star Kids Academy" className="h-16 w-auto object-contain" />
-          </div>
+          </a>
           <h1 className="text-3xl font-black text-slate-800">Set Up Your Family Profile</h1>
           <p className="text-slate-500 mt-2">This info pre-fills your enrollment form — takes 2 minutes.</p>
         </div>

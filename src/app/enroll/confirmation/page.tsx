@@ -10,7 +10,9 @@ export default function ConfirmationPage() {
       <div className="relative bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full text-center">
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <Image src="/logo.webp" alt="All Star Kids Academy" width={120} height={87} className="object-contain" />
+          <a href="https://allstarkidsacademyga.com">
+            <Image src="/logo.webp" alt="All Star Kids Academy" width={120} height={87} className="object-contain" />
+          </a>
         </div>
 
         {/* Success icon */}

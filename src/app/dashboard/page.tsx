@@ -47,7 +47,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <a href="https://allstarkidsacademyga.com" className="flex items-center gap-3">
             <div className="bg-white rounded-lg p-1 border border-slate-100 shadow-sm">
               <Image src="/logo.webp" alt="All Star Kids Academy" width={52} height={38} className="object-contain" />
             </div>
@@ -55,7 +55,7 @@ export default async function DashboardPage() {
               <p className="text-sm font-bold text-blue-900 leading-tight">All Star Kids Academy</p>
               <p className="text-xs text-slate-400">Family Portal</p>
             </div>
-          </div>
+          </a>
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-slate-600 hidden sm:block">
               {family.firstName} {family.lastName}
