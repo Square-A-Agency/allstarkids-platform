@@ -1,6 +1,9 @@
 export const STAFF_ROLES = [
+  'Teacher (Infants)',
   'Teacher (1 Year Olds)',
   'Teacher (2 Year Olds)',
+  'Teacher (3-4 Year Olds)',
+  'Cook',
   'Bus Driver',
 ] as const
 

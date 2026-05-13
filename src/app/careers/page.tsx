@@ -1,6 +1,6 @@
 // src/app/careers/page.tsx
 import Link from 'next/link'
-import { Heart, Users, Bus } from 'lucide-react'
+import { Baby, Heart, Users, BookOpen, UtensilsCrossed, Bus } from 'lucide-react'
 
 export const metadata = {
   title: 'Careers | All Star Kids Academy',
@@ -8,6 +8,12 @@ export const metadata = {
 }
 
 const roles = [
+  {
+    title: 'Teacher (Infants)',
+    icon: Baby,
+    accentColor: '#ec4899',
+    description: 'Nurture and care for our youngest learners, creating a safe and stimulating environment for infants.',
+  },
   {
     title: 'Teacher (1 Year Olds)',
     icon: Heart,
@@ -19,6 +25,18 @@ const roles = [
     icon: Users,
     accentColor: '#6366f1',
     description: 'Engage our children in productive ways to keep them prepared for their jump to the 3\'s.',
+  },
+  {
+    title: 'Teacher (3-4 Year Olds)',
+    icon: BookOpen,
+    accentColor: '#0ea5e9',
+    description: 'Guide our pre-K children through early literacy, numeracy, and social skills as they prepare for kindergarten.',
+  },
+  {
+    title: 'Cook',
+    icon: UtensilsCrossed,
+    accentColor: '#10b981',
+    description: 'Prepare healthy, nutritious meals for our children each day in a clean and well-organized kitchen.',
   },
   {
     title: 'Bus Driver',
@@ -39,7 +57,7 @@ export default function CareersPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-14">
         {roles.map(({ title, icon: Icon, accentColor, description }) => (
           <div
             key={title}
