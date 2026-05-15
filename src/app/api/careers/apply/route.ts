@@ -5,7 +5,7 @@
 //
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { validateStaffApplicationPayload } from '@/lib/careers'
 export async function POST(req: Request) {
   const formData = await req.formData()
@@ -54,13 +54,13 @@ export async function POST(req: Request) {
   if (resumeFile && resumeFile.size > 0) {
     const ext = resumeFile.name.split('.').pop()
     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabaseAdmin.storage
       .from('resumes')
       .upload(fileName, resumeFile, { contentType: resumeFile.type })
     if (uploadError) {
       console.error('Resume upload failed (non-blocking):', uploadError.message)
     } else {
-      const { data } = supabase.storage.from('resumes').getPublicUrl(fileName)
+      const { data } = supabaseAdmin.storage.from('resumes').getPublicUrl(fileName)
       resumeUrl = data.publicUrl
     }
   }
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
     if (resumeUrl) {
       const fileName = resumeUrl.split('/').pop()
       if (fileName) {
-        await supabase.storage.from('resumes').remove([fileName])
+        await supabaseAdmin.storage.from('resumes').remove([fileName])
       }
     }
     return NextResponse.json({ error: 'Failed to submit application. Please try again.' }, { status: 500 })
