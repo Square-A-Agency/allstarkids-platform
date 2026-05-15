@@ -93,21 +93,23 @@ export default async function StaffApplicationDetailPage({
       </div>
 
       {/* Portfolio */}
-      {(app.resumeUrl || app.linkedinUrl) && (
-        <div className="bg-white rounded-lg border p-6 space-y-3">
-          <h3 className="font-bold text-gray-900">Portfolio / Resume</h3>
-          {app.resumeUrl && (
+      <div className="bg-white rounded-lg border p-6 space-y-3">
+        <h3 className="font-bold text-gray-900">Portfolio / Resume</h3>
+        <div className="flex flex-wrap items-center gap-4">
+          {app.resumeUrl ? (
             <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-blue-600 hover:underline text-sm font-medium">
               <ExternalLink size={14} /> Download Resume
             </a>
+          ) : (
+            <span className="text-sm text-gray-400">No resume uploaded</span>
           )}
           {app.linkedinUrl && (
-            <a href={app.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-blue-600 hover:underline text-sm font-medium ml-4">
+            <a href={app.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-blue-600 hover:underline text-sm font-medium">
               <ExternalLink size={14} /> LinkedIn Profile
             </a>
           )}
         </div>
-      )}
+      </div>
 
       {/* Status Actions */}
       <div className="bg-white rounded-lg border p-6">
