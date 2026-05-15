@@ -7,7 +7,6 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { supabase } from '@/lib/supabase'
 import { validateStaffApplicationPayload } from '@/lib/careers'
-
 export async function POST(req: Request) {
   const formData = await req.formData()
 
@@ -32,6 +31,13 @@ export async function POST(req: Request) {
   const error = validateStaffApplicationPayload(payload)
   if (error) {
     return NextResponse.json({ error }, { status: 400 })
+  }
+
+  // Validate role against current DB openings
+  const openings = await prisma.jobOpening.findMany({ select: { title: true } })
+  const validTitles = openings.map((o) => o.title)
+  if (!validTitles.includes(payload.role as string)) {
+    return NextResponse.json({ error: 'Invalid role: position is no longer available' }, { status: 400 })
   }
 
   // After validation, types are guaranteed

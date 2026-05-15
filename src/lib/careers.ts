@@ -33,10 +33,6 @@ export function validateStaffApplicationPayload(payload: Record<string, unknown>
     }
   }
 
-  if (!STAFF_ROLES.includes(payload.role as StaffRole)) {
-    return `Invalid role: must be one of ${STAFF_ROLES.join(', ')}`
-  }
-
   if (typeof payload.yearsExp !== 'number' || isNaN(payload.yearsExp) || !Number.isInteger(payload.yearsExp) || payload.yearsExp < 0) {
     return 'Invalid yearsExp: must be a non-negative integer'
   }

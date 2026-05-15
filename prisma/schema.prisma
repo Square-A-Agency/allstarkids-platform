@@ -231,6 +231,19 @@ model ApplicationDocument {
   @@map("application_documents")
 }
 
+// ─── Job Openings ────────────────────────────────────────────────────────────
+
+model JobOpening {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  title       String
+  description String
+  icon        String   @default("Users")
+  accentColor String   @default("#6366f1")
+
+  @@map("job_openings")
+}
+
 // ─── Staff Applications ───────────────────────────────────────────────────────
 
 enum StaffApplicationStatus {

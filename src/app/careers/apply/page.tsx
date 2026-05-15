@@ -1,5 +1,5 @@
-// src/app/careers/apply/page.tsx
 import ApplicationForm from '@/components/careers/ApplicationForm'
+import { prisma } from '@/lib/prisma'
 
 export const metadata = {
   title: 'Apply | All Star Kids Academy Careers',
@@ -11,6 +11,9 @@ export default async function ApplyPage({
   searchParams: Promise<{ role?: string }>
 }) {
   const { role } = await searchParams
+  const openings = await prisma.jobOpening.findMany({ orderBy: { createdAt: 'asc' } })
+  const roles = openings.map((o) => o.title)
+
   return (
     <div className="max-w-2xl mx-auto px-6 py-14">
       <div className="mb-10">
@@ -19,7 +22,7 @@ export default async function ApplyPage({
         <p className="text-slate-500 mt-2 text-sm">Fields marked * are required. This takes about 5 minutes.</p>
       </div>
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-        <ApplicationForm defaultRole={role} />
+        <ApplicationForm defaultRole={role} roles={roles} />
       </div>
     </div>
   )
