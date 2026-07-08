@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireOrg } from "@/lib/tenant";
 
 export async function GET() {
   const { userId } = await auth();
@@ -8,8 +9,9 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { orgId } = await requireOrg();
   const family = await prisma.family.findUnique({
-    where: { clerkUserId: userId },
+    where: { organizationId_clerkUserId: { organizationId: orgId, clerkUserId: userId } },
     include: {
       children: true,
       applications: {

@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { isAdminUser } from "@/lib/admin-auth";
+import { requireOrg } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
@@ -45,11 +46,12 @@ export default async function AdminPage({
   searchParams: Promise<{ status?: string }>;
 }) {
   const { userId } = await auth();
-  if (!isAdminUser(userId)) redirect("/");
+  if (!(await isAdminUser(userId))) redirect("/");
 
   const { status: statusFilter } = await searchParams;
 
-  const where = statusFilter ? { status: statusFilter as any } : {};
+  const { orgId } = await requireOrg();
+  const where = { organizationId: orgId, ...(statusFilter ? { status: statusFilter as any } : {}) };
 
   const [applications, total, pending, accepted] = await Promise.all([
     prisma.enrollmentApplication.findMany({
@@ -57,9 +59,9 @@ export default async function AdminPage({
       include: { child: true, family: true },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.enrollmentApplication.count(),
-    prisma.enrollmentApplication.count({ where: { status: "PENDING" } }),
-    prisma.enrollmentApplication.count({ where: { status: "ACCEPTED" } }),
+    prisma.enrollmentApplication.count({ where: { organizationId: orgId } }),
+    prisma.enrollmentApplication.count({ where: { organizationId: orgId, status: "PENDING" } }),
+    prisma.enrollmentApplication.count({ where: { organizationId: orgId, status: "ACCEPTED" } }),
   ]);
 
   return (

@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 import { generateApplicationDocuments } from "@/lib/documents/generate-documents";
+import { requireOrg } from "@/lib/tenant";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -11,8 +12,11 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { familyInfo, children, signature, signatureDate } = body;
 
-  // 1. Get the family record
-  const family = await prisma.family.findUnique({ where: { clerkUserId: userId } });
+  // 1. Resolve tenant + get the family record (org-scoped)
+  const { orgId } = await requireOrg();
+  const family = await prisma.family.findUnique({
+    where: { organizationId_clerkUserId: { organizationId: orgId, clerkUserId: userId } },
+  });
   if (!family) return NextResponse.json({ error: "Family not found" }, { status: 404 });
 
   // 2. Update family contact info (in case they edited it in step 1)
@@ -43,6 +47,7 @@ export async function POST(req: Request) {
     // Create child record
     const childRecord = await prisma.child.create({
       data: {
+        organizationId: orgId,
         familyId: family.id,
         firstName: child.firstName,
         lastName: child.lastName,
@@ -60,6 +65,7 @@ export async function POST(req: Request) {
     // Create enrollment application
     const application = await prisma.enrollmentApplication.create({
       data: {
+        organizationId: orgId,
         familyId: family.id,
         childId: childRecord.id,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,6 +137,7 @@ export async function POST(req: Request) {
       await prisma.applicationDocument.createMany({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data: child.preKDocuments.map((doc: any) => ({
+          organizationId: orgId,
           applicationId: application.id,
           documentType: doc.documentType,
           fileName: doc.fileName,
