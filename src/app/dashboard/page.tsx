@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireOrg } from "@/lib/tenant";
 import Link from "next/link";
 import Image from "next/image";
 import { UserButton } from "@clerk/nextjs";
@@ -26,9 +27,10 @@ const programLabels: Record<string, string> = {
 export default async function DashboardPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
+  const { orgId } = await requireOrg();
 
   const family = await prisma.family.findUnique({
-    where: { clerkUserId: userId },
+    where: { organizationId_clerkUserId: { organizationId: orgId, clerkUserId: userId } },
     include: {
       applications: {
         include: { child: true },

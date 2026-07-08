@@ -5,6 +5,7 @@
 //
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireOrg } from '@/lib/tenant'
 import { supabaseAdmin } from '@/lib/supabase'
 import { validateStaffApplicationPayload } from '@/lib/careers'
 export async function POST(req: Request) {
@@ -34,7 +35,8 @@ export async function POST(req: Request) {
   }
 
   // Validate role against current DB openings
-  const openings = await prisma.jobOpening.findMany({ select: { title: true } })
+  const { orgId } = await requireOrg()
+  const openings = await prisma.jobOpening.findMany({ where: { organizationId: orgId }, select: { title: true } })
   const validTitles = openings.map((o) => o.title)
   if (!validTitles.includes(payload.role as string)) {
     return NextResponse.json({ error: 'Invalid role: position is no longer available' }, { status: 400 })
@@ -68,6 +70,7 @@ export async function POST(req: Request) {
   try {
     await prisma.staffApplication.create({
       data: {
+        organizationId: orgId,
         role:         validated.role,
         firstName:    validated.firstName,
         lastName:     validated.lastName,

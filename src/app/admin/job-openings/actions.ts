@@ -2,12 +2,13 @@
 
 import { auth } from '@clerk/nextjs/server'
 import { isAdminUser } from '@/lib/admin-auth'
+import { requireOrg } from '@/lib/tenant'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
 export async function createJobOpening(formData: FormData) {
   const { userId } = await auth()
-  if (!isAdminUser(userId)) throw new Error('Unauthorized')
+  if (!(await isAdminUser(userId))) throw new Error('Unauthorized')
 
   const title = (formData.get('title') as string).trim()
   const description = (formData.get('description') as string).trim()
@@ -16,16 +17,18 @@ export async function createJobOpening(formData: FormData) {
 
   if (!title || !description) throw new Error('Title and description are required')
 
-  await prisma.jobOpening.create({ data: { title, description, icon, accentColor } })
+  const { orgId } = await requireOrg()
+  await prisma.jobOpening.create({ data: { organizationId: orgId, title, description, icon, accentColor } })
   revalidatePath('/admin/job-openings')
   revalidatePath('/careers')
 }
 
 export async function deleteJobOpening(id: string) {
   const { userId } = await auth()
-  if (!isAdminUser(userId)) throw new Error('Unauthorized')
+  if (!(await isAdminUser(userId))) throw new Error('Unauthorized')
 
-  await prisma.jobOpening.delete({ where: { id } })
+  const { orgId } = await requireOrg()
+  await prisma.jobOpening.delete({ where: { id, organizationId: orgId } })
   revalidatePath('/admin/job-openings')
   revalidatePath('/careers')
 }

@@ -113,6 +113,7 @@ async function uploadToStorage(
 // ── Per-document generation (shared by both orchestrators) ────────────────────
 
 async function generateAndStore(
+  organizationId: string,
   applicationId: string,
   docType: string,
   data: ApplicationData,
@@ -137,7 +138,7 @@ async function generateAndStore(
   await prisma.applicationDocument.upsert({
     where: { applicationId_documentType: { applicationId, documentType: docType } },
     update: { generationStatus, generationError, ...(fileUrl ? { fileUrl, fileName: `${docType}.pdf`, mimeType: 'application/pdf' } : {}) },
-    create: { applicationId, documentType: docType, fileName: `${docType}.pdf`, fileUrl, mimeType: 'application/pdf', generationStatus, generationError },
+    create: { organizationId, applicationId, documentType: docType, fileName: `${docType}.pdf`, fileUrl, mimeType: 'application/pdf', generationStatus, generationError },
   })
 }
 
@@ -161,7 +162,7 @@ export async function generateApplicationDocuments(applicationId: string): Promi
   const supabase = getSupabaseClient()
 
   for (const docType of docTypes) {
-    await generateAndStore(applicationId, docType, data, supabase)
+    await generateAndStore(application.organizationId, applicationId, docType, data, supabase)
   }
 }
 
@@ -175,5 +176,5 @@ export async function generateSingleDocument(applicationId: string, docType: str
 
   const data = assembleApplicationData(application as any)
   const supabase = getSupabaseClient()
-  await generateAndStore(applicationId, docType, data, supabase)
+  await generateAndStore(application.organizationId, applicationId, docType, data, supabase)
 }

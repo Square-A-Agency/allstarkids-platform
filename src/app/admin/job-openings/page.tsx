@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { isAdminUser } from '@/lib/admin-auth'
+import { requireOrg } from '@/lib/tenant'
 import { prisma } from '@/lib/prisma'
 import { createJobOpening, deleteJobOpening } from './actions'
 
@@ -28,9 +29,10 @@ const COLOR_OPTIONS = [
 
 export default async function JobOpeningsPage() {
   const { userId } = await auth()
-  if (!isAdminUser(userId)) redirect('/')
+  if (!(await isAdminUser(userId))) redirect('/')
 
-  const openings = await prisma.jobOpening.findMany({ orderBy: { createdAt: 'asc' } })
+  const { orgId } = await requireOrg()
+  const openings = await prisma.jobOpening.findMany({ where: { organizationId: orgId }, orderBy: { createdAt: 'asc' } })
 
   return (
     <div className="space-y-8 max-w-3xl">
