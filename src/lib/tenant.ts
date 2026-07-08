@@ -83,7 +83,15 @@ export async function withOrg<T>(
   });
 }
 
-/** Convenience: resolve org or throw a 401-worthy error. */
+/**
+ * Convenience: resolve org or throw.
+ *
+ * Throwing here surfaces as a 500 — deliberately: no resolvable org means
+ * either DEFAULT_ORG_SLUG is misconfigured or a staff member's Clerk org
+ * isn't registered in `organizations`. Both are operator errors, not
+ * user-authentication failures. If callers ever need to map this to a
+ * 401/403 UX, introduce a typed error then.
+ */
 export async function requireOrg(): Promise<OrgContext> {
   const org = await resolveOrg();
   if (!org) {

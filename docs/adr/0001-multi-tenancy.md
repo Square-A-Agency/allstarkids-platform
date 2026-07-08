@@ -37,7 +37,12 @@ Policies are ENABLED but not FORCED in this migration. The Prisma connection
 runs as the table owner, which bypasses non-forced RLS, so the app keeps
 working while call sites migrate to `withOrg()`. Follow-ups:
 
-- [ ] Route all queries through `withOrg()`
+- [ ] Route all queries through `withOrg()`. Note for the document
+      generation pipeline (`src/lib/documents/generate-documents.ts`): scope
+      each DB operation individually — do NOT wrap the whole flow in one
+      `withOrg()` transaction, as it performs PDF rendering and Supabase
+      storage uploads between queries and would hold an interactive
+      transaction (default 5s timeout) across external I/O.
 - [ ] Connect as a non-owner `app_user` role
 - [ ] `ALTER TABLE ... FORCE ROW LEVEL SECURITY` on all tables
 - [ ] Remove `ADMIN_USER_IDS` fallback after Clerk Organizations rollout
