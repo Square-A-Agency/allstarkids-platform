@@ -24,6 +24,13 @@ Two isolation layers:
    (default deny). `withOrg()` in `src/lib/tenant.ts` sets the context with
    `SET LOCAL` inside a transaction (pool-safe).
 
+   Exception: `organizations` is the tenant *directory*, not tenant data.
+   `resolveOrg()` must read it by slug/clerkOrgId before any context exists
+   (that lookup is what establishes the context), so an org-scoped policy
+   would deadlock bootstrapping under FORCE RLS. Its policies are therefore:
+   SELECT open, UPDATE restricted to the current org, INSERT/DELETE
+   default-deny (onboarding/offboarding is a privileged operation).
+
 ## RLS staging
 
 Policies are ENABLED but not FORCED in this migration. The Prisma connection

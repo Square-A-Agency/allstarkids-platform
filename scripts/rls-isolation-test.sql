@@ -45,5 +45,23 @@ EXCEPTION WHEN OTHERS THEN
   RAISE NOTICE 'TEST5 PASSED: cross-tenant insert blocked';
 END $$;
 
+-- Org directory: readable without context (bootstrap), writes still fenced.
+SELECT set_config('app.current_org_id', NULL, true);
+SELECT 'TEST6 org directory read without context (want 2):' AS test,
+       count(*) FROM organizations WHERE id IN ('org_test_a','org_test_b');
+
+SELECT set_config('app.current_org_id','org_test_b', true);
+UPDATE organizations SET "name"='HACKED' WHERE id='org_test_a';
+SELECT 'TEST7 cross-tenant org update (want 0):' AS test,
+       count(*) FROM organizations WHERE "name"='HACKED';
+
+DO $$ BEGIN
+  INSERT INTO organizations ("id","name","slug","updatedAt")
+  VALUES ('org_test_evil','Evil Org','rls-test-evil',now());
+  RAISE NOTICE 'TEST8 FAILED: org insert via app role succeeded';
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'TEST8 PASSED: org insert via app role blocked';
+END $$;
+
 RESET ROLE;
 ROLLBACK; -- leaves no test data behind

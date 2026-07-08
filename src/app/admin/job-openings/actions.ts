@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 import { isAdminUser } from '@/lib/admin-auth'
 import { requireOrg } from '@/lib/tenant'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@/generated/prisma/client'
 import { revalidatePath } from 'next/cache'
 
 export async function createJobOpening(formData: FormData) {
@@ -28,7 +29,15 @@ export async function deleteJobOpening(id: string) {
   if (!(await isAdminUser(userId))) throw new Error('Unauthorized')
 
   const { orgId } = await requireOrg()
-  await prisma.jobOpening.delete({ where: { id, organizationId: orgId } })
+  try {
+    await prisma.jobOpening.delete({ where: { id, organizationId: orgId } })
+  } catch (error: unknown) {
+    // Already deleted (or not this org's): treat as done, still revalidate
+    // so a stale admin view refreshes.
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025')) {
+      throw error
+    }
+  }
   revalidatePath('/admin/job-openings')
   revalidatePath('/careers')
 }
