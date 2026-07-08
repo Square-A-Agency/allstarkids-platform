@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Admin authorization — organization-role based.
@@ -31,7 +32,17 @@ export async function isAdminUser(userId: string | null): Promise<boolean> {
   // Never authorize on behalf of a different user than the active session.
   if (sessionUserId !== userId) return false;
 
-  if (orgId && orgRole && ADMIN_ORG_ROLES.has(orgRole)) return true;
+  if (orgId && orgRole && ADMIN_ORG_ROLES.has(orgRole)) {
+    // Only honor the role if the Clerk org is a known tenant. Clerk users can
+    // create their own orgs (becoming org:admin of them); without this check,
+    // such a user would pass here and resolveOrg()'s DEFAULT_ORG_SLUG fallback
+    // would then hand them the default tenant's data.
+    const org = await prisma.organization.findUnique({
+      where: { clerkOrgId: orgId },
+      select: { id: true },
+    });
+    if (org) return true;
+  }
 
   // Legacy fallback — remove after Clerk Organizations rollout.
   return isLegacyEnvAdmin(userId);

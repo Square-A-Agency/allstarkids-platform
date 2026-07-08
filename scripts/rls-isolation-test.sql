@@ -46,7 +46,9 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 -- Org directory: readable without context (bootstrap), writes still fenced.
-SELECT set_config('app.current_org_id', NULL, true);
+-- RESET (not set_config with NULL): pre-PG15 set_config errors on NULL, and
+-- RESET genuinely unsets rather than setting empty string.
+RESET app.current_org_id;
 SELECT 'TEST6 org directory read without context (want 2):' AS test,
        count(*) FROM organizations WHERE id IN ('org_test_a','org_test_b');
 
