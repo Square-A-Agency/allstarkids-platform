@@ -1,6 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
 import { isAdminUser } from "@/lib/admin-auth";
-import { requireOrg } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -96,13 +95,12 @@ export default async function ApplicationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { userId } = await auth();
-  if (!(await isAdminUser(userId))) redirect("/");
+  if (!isAdminUser(userId)) redirect("/");
 
   const { id } = await params;
 
-  const { orgId } = await requireOrg();
   const application = await prisma.enrollmentApplication.findUnique({
-    where: { id, organizationId: orgId },
+    where: { id },
     include: { child: true, family: true, documents: true },
   });
 

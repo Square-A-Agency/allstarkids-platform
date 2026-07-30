@@ -26,8 +26,8 @@ describe('validateStaffApplicationPayload', () => {
     expect(validateStaffApplicationPayload(rest)).toMatch(/firstName/)
   })
 
-  it('accepts any non-empty role — membership is validated against live job openings at the API layer', () => {
-    expect(validateStaffApplicationPayload({ ...validPayload, role: 'Janitor' })).toBeNull()
+  it('returns error for invalid role', () => {
+    expect(validateStaffApplicationPayload({ ...validPayload, role: 'Janitor' })).toMatch(/role/)
   })
 
   it('returns error when yearsExp is negative', () => {

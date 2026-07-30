@@ -2,7 +2,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect, notFound } from 'next/navigation'
 import { isAdminUser } from '@/lib/admin-auth'
-import { requireOrg } from '@/lib/tenant'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import StaffApplicationActions from '@/components/admin/StaffApplicationActions'
@@ -39,11 +38,10 @@ export default async function StaffApplicationDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { userId } = await auth()
-  if (!(await isAdminUser(userId))) redirect('/')
+  if (!isAdminUser(userId)) redirect('/')
 
   const { id } = await params
-  const { orgId } = await requireOrg()
-  const app = await prisma.staffApplication.findUnique({ where: { id, organizationId: orgId } })
+  const app = await prisma.staffApplication.findUnique({ where: { id } })
   if (!app) notFound()
 
   return (

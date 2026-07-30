@@ -1,9 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/lib/tenant', () => ({
-  requireOrg: vi.fn().mockResolvedValue({ orgId: 'org_test', slug: 'test' }),
-}))
-
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     jobOpening: {
@@ -53,6 +49,6 @@ describe('GET /api/careers/openings', () => {
 
     await GET()
 
-    expect(mockFindMany).toHaveBeenCalledWith({ where: { organizationId: 'org_test' }, orderBy: { createdAt: 'asc' } })
+    expect(mockFindMany).toHaveBeenCalledWith({ orderBy: { createdAt: 'asc' } })
   })
 })

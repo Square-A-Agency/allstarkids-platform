@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireOrg } from "@/lib/tenant";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -22,11 +21,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { orgId } = await requireOrg();
     const family = await prisma.family.upsert({
-      where: { organizationId_clerkUserId: { organizationId: orgId, clerkUserId: userId } },
+      where: { clerkUserId: userId },
       create: {
-        organizationId: orgId,
         clerkUserId: userId,
         firstName, lastName, email, phone,
         address, city, state: state || "GA", zip,

@@ -1,6 +1,5 @@
 import ApplicationForm from '@/components/careers/ApplicationForm'
 import { prisma } from '@/lib/prisma'
-import { requireOrg } from '@/lib/tenant'
 
 export const metadata = {
   title: 'Apply | All Star Kids Academy Careers',
@@ -12,8 +11,7 @@ export default async function ApplyPage({
   searchParams: Promise<{ role?: string }>
 }) {
   const { role } = await searchParams
-  const { orgId } = await requireOrg()
-  const openings = await prisma.jobOpening.findMany({ where: { organizationId: orgId }, orderBy: { createdAt: 'asc' } })
+  const openings = await prisma.jobOpening.findMany({ orderBy: { createdAt: 'asc' } })
   const roles = openings.map((o) => o.title)
 
   return (

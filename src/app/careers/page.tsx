@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { requireOrg } from '@/lib/tenant'
 import * as LucideIcons from 'lucide-react'
 
 export const metadata = {
@@ -16,8 +15,7 @@ function JobIcon({ name, color }: { name: string; color: string }) {
 }
 
 export default async function CareersPage() {
-  const { orgId } = await requireOrg()
-  const openings = await prisma.jobOpening.findMany({ where: { organizationId: orgId }, orderBy: { createdAt: 'asc' } })
+  const openings = await prisma.jobOpening.findMany({ orderBy: { createdAt: 'asc' } })
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-14">
