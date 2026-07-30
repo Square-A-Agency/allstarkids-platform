@@ -2,7 +2,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { isAdminUser } from '@/lib/admin-auth'
-import { requireOrg } from '@/lib/tenant'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { STAFF_ROLES, VALID_STAFF_STATUSES } from '@/lib/careers'
@@ -38,7 +37,7 @@ export default async function StaffApplicationsPage({
   searchParams: Promise<{ status?: string; role?: string }>
 }) {
   const { userId } = await auth()
-  if (!(await isAdminUser(userId))) redirect('/')
+  if (!isAdminUser(userId)) redirect('/')
 
   const { status: statusFilter, role: roleFilter } = await searchParams
 
@@ -46,19 +45,17 @@ export default async function StaffApplicationsPage({
     ? statusFilter
     : undefined
 
-  const { orgId } = await requireOrg()
   const where = {
-    organizationId: orgId,
     ...(validStatus ? { status: validStatus as (typeof VALID_STAFF_STATUSES)[number] } : {}),
     ...(roleFilter ? { role: roleFilter } : {}),
   }
 
   const [applications, total, pending, interviewScheduled, hired] = await Promise.all([
     prisma.staffApplication.findMany({ where, orderBy: { createdAt: 'desc' } }),
-    prisma.staffApplication.count({ where: { organizationId: orgId } }),
-    prisma.staffApplication.count({ where: { organizationId: orgId, status: 'PENDING' } }),
-    prisma.staffApplication.count({ where: { organizationId: orgId, status: 'INTERVIEW_SCHEDULED' } }),
-    prisma.staffApplication.count({ where: { organizationId: orgId, status: 'HIRED' } }),
+    prisma.staffApplication.count(),
+    prisma.staffApplication.count({ where: { status: 'PENDING' } }),
+    prisma.staffApplication.count({ where: { status: 'INTERVIEW_SCHEDULED' } }),
+    prisma.staffApplication.count({ where: { status: 'HIRED' } }),
   ])
 
   return (

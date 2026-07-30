@@ -10,13 +10,13 @@ datasource db {
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 enum ProgramType {
-  INFANT // Ages 8 weeks–12 months
-  TODDLER // Ages 12–24 months
-  PRESCHOOL // Ages 3–4
-  PRE_K // Ages 4–5 (Georgia state Pre-K)
-  AFTER_SCHOOL // Ages 5–12
+  INFANT      // Ages 8 weeks–12 months
+  TODDLER     // Ages 12–24 months
+  PRESCHOOL   // Ages 3–4
+  PRE_K       // Ages 4–5 (Georgia state Pre-K)
+  AFTER_SCHOOL     // Ages 5–12
   SUMMER_CAMP_EAGLETS // Ages 5–7
-  SUMMER_CAMP_EAGLES // Ages 8–12
+  SUMMER_CAMP_EAGLES  // Ages 8–12
 }
 
 enum ApplicationStatus {
@@ -45,48 +45,13 @@ enum DocumentGenerationStatus {
   ERROR
 }
 
-// ─── Organization (Tenant) ────────────────────────────────────────────────────
-// Each daycare center is an Organization. Every domain row carries an
-// organizationId, enforced at the app layer (Prisma) and the data layer (RLS).
-
-model Organization {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  name String
-  slug String @unique // used for org resolution (subdomain / path), e.g. "allstarkids"
-
-  // Clerk Organization ID — staff/director membership + roles live in Clerk
-  clerkOrgId String? @unique
-
-  // Regulatory context
-  state    String @default("GA")
-  formPack String @default("ga-decal") // which document pack the doc engine uses
-
-  // Operational contact
-  adminEmail String?
-
-  families          Family[]
-  children          Child[]
-  applications      EnrollmentApplication[]
-  documents         ApplicationDocument[]
-  jobOpenings       JobOpening[]
-  staffApplications StaffApplication[]
-
-  @@map("organizations")
-}
-
 // ─── Family Account ───────────────────────────────────────────────────────────
 
 model Family {
   id          String   @id @default(cuid())
-  clerkUserId String // Clerk auth user ID
+  clerkUserId String   @unique // Clerk auth user ID
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
 
   // Primary contact info
   firstName String
@@ -111,10 +76,6 @@ model Family {
   children     Child[]
   applications EnrollmentApplication[]
 
-  // A parent account is unique *per organization* (same person could enroll
-  // at two different centers in the future).
-  @@unique([organizationId, clerkUserId])
-  @@index([organizationId])
   @@map("families")
 }
 
@@ -124,9 +85,6 @@ model Child {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
 
   familyId String
   family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
@@ -145,7 +103,6 @@ model Child {
 
   application EnrollmentApplication?
 
-  @@index([organizationId])
   @@map("children")
 }
 
@@ -156,9 +113,6 @@ model EnrollmentApplication {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   submittedAt DateTime?
-
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
 
   familyId String
   family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
@@ -250,8 +204,6 @@ model EnrollmentApplication {
 
   documents ApplicationDocument[]
 
-  @@index([organizationId])
-  @@index([organizationId, status])
   @@map("enrollment_applications")
 }
 
@@ -261,9 +213,6 @@ model ApplicationDocument {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
 
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
   applicationId String
   application   EnrollmentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
@@ -271,33 +220,27 @@ model ApplicationDocument {
   // "BIRTH_CERTIFICATE" | "SSN_CARD" | "MEDICAID_CARD" | "PARENT_DL"
   // "PROOF_OF_RESIDENCY" | "PEACH_CARE_CARD" | "FORM_3300" | "FORM_3232"
 
-  fileName         String
-  fileUrl          String // Supabase Storage URL
-  fileSize         Int?
-  mimeType         String?
-  generationStatus DocumentGenerationStatus @default(PENDING)
-  generationError  String?
+  fileName String
+  fileUrl  String // Supabase Storage URL
+  fileSize Int?
+  mimeType String?
+  generationStatus  DocumentGenerationStatus @default(PENDING)
+  generationError   String?
 
   @@unique([applicationId, documentType])
-  @@index([organizationId])
   @@map("application_documents")
 }
 
 // ─── Job Openings ────────────────────────────────────────────────────────────
 
 model JobOpening {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
   title       String
   description String
-  icon        String @default("Users")
-  accentColor String @default("#6366f1")
+  icon        String   @default("Users")
+  accentColor String   @default("#6366f1")
 
-  @@index([organizationId])
   @@map("job_openings")
 }
 
@@ -312,12 +255,9 @@ enum StaffApplicationStatus {
 }
 
 model StaffApplication {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  id           String                 @id @default(cuid())
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
 
   role         String
   firstName    String
@@ -330,11 +270,10 @@ model StaffApplication {
   refOnePhone  String
   refTwoName   String
   refTwoPhone  String
-  coverNote    String                 @db.Text
+  coverNote    String         @db.Text
   resumeUrl    String?
   linkedinUrl  String?
   status       StaffApplicationStatus @default(PENDING)
 
-  @@index([organizationId])
   @@map("staff_applications")
 }

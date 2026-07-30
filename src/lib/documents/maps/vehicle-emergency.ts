@@ -24,9 +24,11 @@ export default function vehicleEmergencyMap(data: ApplicationData): FieldEntry[]
       { type: 'text' as const, page: 0, x: 430, y: 455, value: ec0.phone },
     ] : []),
 
-    // Doctor
-    { type: 'text', page: 0, x: 185, y: 430, value: [data.doctor.clinicName, data.doctor.name].filter(Boolean).join(' / ') },
-    { type: 'text', page: 0, x: 430, y: 430, value: data.doctor.phone ?? '' },
+    // Doctor name on the "Child's Doctor ___ Phone ___" row; the clinic goes
+    // on the "Medical facility the center uses" line where it belongs.
+    { type: 'text', page: 0, x: 157, y: 428, fontSize: 9, value: data.doctor.name ?? '' },
+    { type: 'text', page: 0, x: 430, y: 428, value: data.doctor.phone ?? '' },
+    { type: 'text', page: 0, x: 234, y: 400, value: data.doctor.clinicName ?? '' },
 
     // Medical info
     { type: 'text', page: 0, x: 165, y: 350, value: data.allergies ?? '' },

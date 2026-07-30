@@ -7,7 +7,7 @@ import { UserButton } from "@clerk/nextjs";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
-  if (!(await isAdminUser(userId))) redirect("/");
+  if (!isAdminUser(userId)) redirect("/");
 
   return (
     <div className="min-h-screen bg-slate-50">
