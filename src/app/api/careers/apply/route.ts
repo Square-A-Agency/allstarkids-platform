@@ -5,9 +5,10 @@
 //
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { validateStaffApplicationPayload } from '@/lib/careers'
 export async function POST(req: Request) {
+  const supabaseAdmin = getSupabaseAdmin()
   const formData = await req.formData()
 
   const rawYearsExp = formData.get('yearsExp')
