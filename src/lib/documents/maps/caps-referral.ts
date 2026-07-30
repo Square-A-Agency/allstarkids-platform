@@ -3,24 +3,25 @@ import type { ApplicationData, FieldEntry } from '../types'
 export default function capsReferralMap(data: ApplicationData): FieldEntry[] {
   const hasCaps = Boolean(data.preK.capsCaseId)
   return [
-    // Parent contact info
-    { type: 'text', page: 0, x: 157, y: 500, value: `${data.parent1.firstName} ${data.parent1.lastName}` },
-    { type: 'checkbox', page: 0, x: 245, y: 480, checked: hasCaps },
-    { type: 'checkbox', page: 0, x: 278, y: 480, checked: !hasCaps },
-    { type: 'text',     page: 0, x: 475, y: 480, value: data.preK.capsCaseId ?? '' },
-    { type: 'text',     page: 0, x: 185, y: 458, value: data.parent1.phone },
-    { type: 'text',     page: 0, x: 455, y: 458, value: data.parent1.email },
+    // Family information (labels measured: Name: y=503, CAPS? row y=490,
+    // Phone/Email row y=466, enrolled row y=442, child rows y=430/418,
+    // extended-day row y=382)
+    { type: 'text', page: 0, x: 95, y: 505, value: `${data.parent1.firstName} ${data.parent1.lastName}` },
+    { type: 'checkbox', page: 0, x: 195, y: 491, checked: hasCaps },
+    { type: 'checkbox', page: 0, x: 266, y: 491, checked: !hasCaps },
+    { type: 'text',     page: 0, x: 434, y: 492, fontSize: 8, value: data.preK.capsCaseId ?? '' },
+    { type: 'text',     page: 0, x: 103, y: 468, value: data.parent1.phone },
+    { type: 'text',     page: 0, x: 398, y: 468, fontSize: 8, value: data.parent1.email },
 
-    // Child enrolled
-    { type: 'checkbox', page: 0, x: 433, y: 432, checked: true },
-    { type: 'checkbox', page: 0, x: 465, y: 432, checked: false },
+    // Child enrolled in Georgia's Pre-K classroom: always Yes on a referral
+    { type: 'checkbox', page: 0, x: 282, y: 443, checked: true },
 
     // Child info
-    { type: 'text', page: 0, x: 118, y: 412, value: `${data.child.firstName} ${data.child.lastName}` },
-    { type: 'text', page: 0, x: 168, y: 393, value: data.child.dateOfBirth },
+    { type: 'text', page: 0, x: 95,  y: 432, value: `${data.child.firstName} ${data.child.lastName}` },
+    { type: 'text', page: 0, x: 124, y: 420, value: data.child.dateOfBirth },
 
-    // Extended day
-    { type: 'checkbox', page: 0, x: 87,  y: 355, checked: data.preK.needsExtendedDay === true },
-    { type: 'checkbox', page: 0, x: 120, y: 355, checked: data.preK.needsExtendedDay === false },
+    // Needs care before/after the instructional day
+    { type: 'checkbox', page: 0, x: 51,  y: 383, checked: data.preK.needsExtendedDay === true },
+    { type: 'checkbox', page: 0, x: 104, y: 383, checked: data.preK.needsExtendedDay === false },
   ]
 }

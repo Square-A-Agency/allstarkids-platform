@@ -11,115 +11,117 @@ export default function preKChildRegMap(data: ApplicationData): FieldEntry[] {
   return [
     // ── Page 0: Pre-K Registration Form (Page 1 of 3) ───────────────────
 
-    // Child identity (character-box fields; text placed at start of first box)
-    { type: 'text', page: 0, x: 155, y: 617, value: data.child.lastName },
-    { type: 'text', page: 0, x: 155, y: 600, value: data.child.firstName },
-    { type: 'text', page: 0, x: 155, y: 583, value: data.child.middleName ?? '' },
+    // Child identity (character-box rows; LAST label row measured y=618)
+    { type: 'text', page: 0, x: 160, y: 621, value: data.child.lastName },
+    { type: 'text', page: 0, x: 160, y: 605, value: data.child.firstName },
+    { type: 'text', page: 0, x: 160, y: 590, value: data.child.middleName ?? '' },
 
-    // SSN, DOB, Sex
-    { type: 'text', page: 0, x: 255, y: 567, value: data.child.ssn ?? '' },
-    { type: 'text', page: 0, x: 355, y: 567, value: data.child.dateOfBirth },
-    { type: 'checkbox', page: 0, x: 452, y: 567, checked: data.child.sex === 'M' },
-    { type: 'checkbox', page: 0, x: 468, y: 567, checked: data.child.sex === 'F' },
+    // SSN / D.O.B. / Sex row (labels y=572; [ ]M at x~508, [ ]F at x~536)
+    { type: 'text', page: 0, x: 162, y: 574, value: data.child.ssn ?? '' },
+    { type: 'text', page: 0, x: 406, y: 574, fontSize: 8, value: data.child.dateOfBirth },
+    { type: 'checkbox', page: 0, x: 510, y: 574, checked: data.child.sex === 'M' },
+    { type: 'checkbox', page: 0, x: 538, y: 574, checked: data.child.sex === 'F' },
 
-    // Home address
-    { type: 'text', page: 0, x: 300, y: 553, value: data.parent1.address },
-    { type: 'text', page: 0, x: 510, y: 553, value: data.child.county ?? '' },
-    { type: 'text', page: 0, x: 80,  y: 537, value: data.parent1.city },
-    { type: 'text', page: 0, x: 330, y: 537, value: data.parent1.zip },
-    { type: 'text', page: 0, x: 440, y: 537, value: data.parent1.phone },
+    // Home address / county (row between SSN and CITY rows)
+    { type: 'text', page: 0, x: 300, y: 558, value: data.parent1.address },
+    { type: 'text', page: 0, x: 510, y: 558, value: data.child.county ?? '' },
+    // City / Zip / Home phone row (labels y=541)
+    { type: 'text', page: 0, x: 80,  y: 543, value: data.parent1.city },
+    { type: 'text', page: 0, x: 364, y: 543, value: data.parent1.zip },
+    { type: 'text', page: 0, x: 520, y: 543, fontSize: 8, value: data.parent1.phone },
 
-    // Previous school transfer info
-    { type: 'text', page: 0, x: 215, y: 508, value: data.preK.previousSchool ?? '' },
-    { type: 'text', page: 0, x: 545, y: 508, value: data.preK.lastDatePreviousSchool ?? '' },
+    // Previous school transfer row (labels y=502)
+    { type: 'text', page: 0, x: 155, y: 504, value: data.preK.previousSchool ?? '' },
+    { type: 'text', page: 0, x: 450, y: 504, fontSize: 8, value: data.preK.lastDatePreviousSchool ?? '' },
 
-    // Parent/Guardian #1
-    { type: 'text', page: 0, x: 242, y: 452, value: data.parent1.lastName },
-    { type: 'text', page: 0, x: 370, y: 452, value: data.parent1.firstName },
-    { type: 'text', page: 0, x: 200, y: 437, value: data.parent1.address },
-    { type: 'text', page: 0, x: 80,  y: 422, value: data.parent1.city },
-    { type: 'text', page: 0, x: 330, y: 422, value: data.parent1.zip },
-    { type: 'text', page: 0, x: 100, y: 407, value: data.parent1.phone },
-    { type: 'text', page: 0, x: 355, y: 407, value: data.parent1.phone },  // cell same as phone
-    { type: 'text', page: 0, x: 100, y: 393, value: data.parent1.email },
-    { type: 'text', page: 0, x: 180, y: 378, value: data.parent1.employer ?? '' },
-    { type: 'text', page: 0, x: 440, y: 378, value: data.parent1.workPhone ?? '' },
-    { type: 'text', page: 0, x: 80,  y: 363, value: data.parent1.employerAddress ?? '' },
+    // Parent/Guardian #1 (LAST NAME row y=456; Cell row y=411; Work row y=382)
+    { type: 'text', page: 0, x: 190, y: 458, value: data.parent1.lastName },
+    { type: 'text', page: 0, x: 346, y: 458, value: data.parent1.firstName },
+    { type: 'text', page: 0, x: 210, y: 443, value: data.parent1.address },
+    { type: 'text', page: 0, x: 80,  y: 428, value: data.parent1.city },
+    { type: 'text', page: 0, x: 510, y: 428, value: data.parent1.zip },
+    { type: 'text', page: 0, x: 150, y: 413, fontSize: 8, value: data.parent1.phone },
+    { type: 'text', page: 0, x: 425, y: 413, fontSize: 8, value: data.parent1.phone },
+    { type: 'text', page: 0, x: 125, y: 399, value: data.parent1.email },
+    { type: 'text', page: 0, x: 185, y: 384, value: data.parent1.employer ?? '' },
+    { type: 'text', page: 0, x: 458, y: 384, fontSize: 8, value: data.parent1.workPhone ?? '' },
+    { type: 'text', page: 0, x: 80,  y: 369, value: data.parent1.employerAddress ?? '' },
 
-    // Parent/Guardian #2
-    { type: 'text', page: 0, x: 242, y: 330, value: data.parent2.lastName ?? '' },
-    { type: 'text', page: 0, x: 370, y: 330, value: data.parent2.firstName ?? '' },
-    { type: 'text', page: 0, x: 200, y: 315, value: data.parent2.address ?? '' },
-    { type: 'text', page: 0, x: 100, y: 285, value: data.parent2.phone ?? '' },
-    { type: 'text', page: 0, x: 180, y: 256, value: data.parent2.employer ?? '' },
-    { type: 'text', page: 0, x: 440, y: 256, value: data.parent2.workPhone ?? '' },
-    { type: 'text', page: 0, x: 80,  y: 241, value: data.parent2.employerAddress ?? '' },
+    // Parent/Guardian #2 (LAST NAME row y=325; phones row y=284; Work y=254)
+    { type: 'text', page: 0, x: 190, y: 327, value: data.parent2.lastName ?? '' },
+    { type: 'text', page: 0, x: 346, y: 327, value: data.parent2.firstName ?? '' },
+    { type: 'text', page: 0, x: 210, y: 313, value: data.parent2.address ?? '' },
+    { type: 'text', page: 0, x: 150, y: 284, fontSize: 8, value: data.parent2.phone ?? '' },
+    { type: 'text', page: 0, x: 185, y: 256, value: data.parent2.employer ?? '' },
+    { type: 'text', page: 0, x: 458, y: 256, fontSize: 8, value: data.parent2.workPhone ?? '' },
+    { type: 'text', page: 0, x: 80,  y: 242, value: data.parent2.employerAddress ?? '' },
 
-    // Emergency contacts (columns: name @ x=55, relationship @ x=155, cell @ x=265, alt phone @ x=375, email @ x=460)
+    // Emergency contacts (columns: name / relationship / cell)
     ...(ec0 ? [
-      { type: 'text' as const, page: 0, x: 55,  y: 177, value: ec0.name },
-      { type: 'text' as const, page: 0, x: 155, y: 177, value: ec0.relationship },
-      { type: 'text' as const, page: 0, x: 265, y: 177, value: ec0.phone },
+      { type: 'text' as const, page: 0, x: 55,  y: 180, value: ec0.name },
+      { type: 'text' as const, page: 0, x: 155, y: 180, value: ec0.relationship },
+      { type: 'text' as const, page: 0, x: 265, y: 180, value: ec0.phone },
     ] : []),
     ...(ec1 ? [
-      { type: 'text' as const, page: 0, x: 55,  y: 162, value: ec1.name },
-      { type: 'text' as const, page: 0, x: 155, y: 162, value: ec1.relationship },
-      { type: 'text' as const, page: 0, x: 265, y: 162, value: ec1.phone },
+      { type: 'text' as const, page: 0, x: 55,  y: 165, value: ec1.name },
+      { type: 'text' as const, page: 0, x: 155, y: 165, value: ec1.relationship },
+      { type: 'text' as const, page: 0, x: 265, y: 165, value: ec1.phone },
     ] : []),
 
     // ── Page 1: Child Maintenance (Page 2 of 3) ─────────────────────────
 
-    // Living arrangements checkboxes
-    { type: 'checkbox', page: 1, x: 265, y: 690, checked: data.livingArrangement === 'BOTH_PARENTS' },
-    { type: 'checkbox', page: 1, x: 360, y: 690, checked: data.livingArrangement === 'MOTHER' },
-    { type: 'checkbox', page: 1, x: 403, y: 690, checked: data.livingArrangement === 'FATHER' },
-    { type: 'checkbox', page: 1, x: 448, y: 690, checked: data.livingArrangement === 'OTHER' },
+    // Living arrangements: [ ] brackets left of each label (labels y=688)
+    { type: 'checkbox', page: 1, x: 198, y: 690, checked: data.livingArrangement === 'BOTH_PARENTS' },
+    { type: 'checkbox', page: 1, x: 296, y: 690, checked: data.livingArrangement === 'MOTHER' },
+    { type: 'checkbox', page: 1, x: 362, y: 690, checked: data.livingArrangement === 'FATHER' },
+    { type: 'checkbox', page: 1, x: 425, y: 690, checked: data.livingArrangement === 'OTHER' },
 
-    // Legal guardian checkboxes
-    { type: 'checkbox', page: 1, x: 265, y: 675, checked: data.legalGuardian === 'BOTH_PARENTS' },
-    { type: 'checkbox', page: 1, x: 360, y: 675, checked: data.legalGuardian === 'MOTHER' },
-    { type: 'checkbox', page: 1, x: 403, y: 675, checked: data.legalGuardian === 'FATHER' },
-    { type: 'checkbox', page: 1, x: 448, y: 675, checked: data.legalGuardian === 'OTHER' },
+    // Legal guardian row (labels y=674)
+    { type: 'checkbox', page: 1, x: 198, y: 676, checked: data.legalGuardian === 'BOTH_PARENTS' },
+    { type: 'checkbox', page: 1, x: 296, y: 676, checked: data.legalGuardian === 'MOTHER' },
+    { type: 'checkbox', page: 1, x: 362, y: 676, checked: data.legalGuardian === 'FATHER' },
+    { type: 'checkbox', page: 1, x: 425, y: 676, checked: data.legalGuardian === 'OTHER' },
 
-    // Authorized pickups (columns: name @ x=37, address @ x=170, relationship @ x=350, cell @ x=440)
+    // Authorized pickups (numbered rows measured at y=625/610/594/579)
     ...(p0 ? [
-      { type: 'text' as const, page: 1, x: 37,  y: 640, value: p0.name },
-      { type: 'text' as const, page: 1, x: 170, y: 640, value: p0.address },
-      { type: 'text' as const, page: 1, x: 350, y: 640, value: p0.relationship },
-      { type: 'text' as const, page: 1, x: 440, y: 640, value: p0.phone },
+      { type: 'text' as const, page: 1, x: 37,  y: 627, value: p0.name },
+      { type: 'text' as const, page: 1, x: 145, y: 627, value: p0.address },
+      { type: 'text' as const, page: 1, x: 350, y: 627, value: p0.relationship },
+      { type: 'text' as const, page: 1, x: 440, y: 627, value: p0.phone },
     ] : []),
     ...(p1 ? [
-      { type: 'text' as const, page: 1, x: 37,  y: 625, value: p1.name },
-      { type: 'text' as const, page: 1, x: 170, y: 625, value: p1.address },
-      { type: 'text' as const, page: 1, x: 350, y: 625, value: p1.relationship },
-      { type: 'text' as const, page: 1, x: 440, y: 625, value: p1.phone },
+      { type: 'text' as const, page: 1, x: 37,  y: 612, value: p1.name },
+      { type: 'text' as const, page: 1, x: 145, y: 612, value: p1.address },
+      { type: 'text' as const, page: 1, x: 350, y: 612, value: p1.relationship },
+      { type: 'text' as const, page: 1, x: 440, y: 612, value: p1.phone },
     ] : []),
     ...(p2 ? [
-      { type: 'text' as const, page: 1, x: 37,  y: 610, value: p2.name },
-      { type: 'text' as const, page: 1, x: 170, y: 610, value: p2.address },
-      { type: 'text' as const, page: 1, x: 350, y: 610, value: p2.relationship },
-      { type: 'text' as const, page: 1, x: 440, y: 610, value: p2.phone },
+      { type: 'text' as const, page: 1, x: 37,  y: 596, value: p2.name },
+      { type: 'text' as const, page: 1, x: 145, y: 596, value: p2.address },
+      { type: 'text' as const, page: 1, x: 350, y: 596, value: p2.relationship },
+      { type: 'text' as const, page: 1, x: 440, y: 596, value: p2.phone },
     ] : []),
     ...(p3 ? [
-      { type: 'text' as const, page: 1, x: 37,  y: 595, value: p3.name },
-      { type: 'text' as const, page: 1, x: 170, y: 595, value: p3.address },
-      { type: 'text' as const, page: 1, x: 350, y: 595, value: p3.relationship },
-      { type: 'text' as const, page: 1, x: 440, y: 595, value: p3.phone },
+      { type: 'text' as const, page: 1, x: 37,  y: 581, value: p3.name },
+      { type: 'text' as const, page: 1, x: 145, y: 581, value: p3.address },
+      { type: 'text' as const, page: 1, x: 350, y: 581, value: p3.relationship },
+      { type: 'text' as const, page: 1, x: 440, y: 581, value: p3.phone },
     ] : []),
 
-    // Physician / health screening
-    { type: 'text', page: 1, x: 370, y: 575, value: [data.doctor.clinicName, data.doctor.name].filter(Boolean).join(' / ') },
-    { type: 'text', page: 1, x: 195, y: 558, value: data.preK.lastHealthScreening ?? '' },
-    { type: 'text', page: 1, x: 450, y: 558, value: data.doctor.phone ?? '' },
+    // Physician (blank after "SOURCE):" ends x~418, narrow, hence size 8;
+    // doctor name only, the clinic has no field on this form)
+    { type: 'text', page: 1, x: 424, y: 567, fontSize: 8, value: data.doctor.name ?? '' },
+    { type: 'text', page: 1, x: 214, y: 556, fontSize: 8, value: data.preK.lastHealthScreening ?? '' },
+    { type: 'text', page: 1, x: 468, y: 556, fontSize: 8, value: data.doctor.phone ?? '' },
 
-    // Special needs / accommodations / medications
-    { type: 'text', page: 1, x: 37, y: 520, value: data.specialNeeds ?? '' },
-    { type: 'text', page: 1, x: 37, y: 460, value: data.specialAccommodations ?? '' },
-    { type: 'text', page: 1, x: 37, y: 393, value: [data.allergies, data.medications].filter(Boolean).join('; ') },
+    // Free-text blocks: first blank line under each label
+    { type: 'text', page: 1, x: 37, y: 528, value: data.specialNeeds ?? '' },
+    { type: 'text', page: 1, x: 37, y: 451, value: data.specialAccommodations ?? '' },
+    { type: 'text', page: 1, x: 37, y: 382, value: [data.allergies, data.medications].filter(Boolean).join('; ') },
 
     // ── Page 2: General Release / Photo Release (Page 3 of 3) ────────────
 
-    // Child name in photo release
-    { type: 'text', page: 2, x: 85, y: 450, value: `${data.child.firstName} ${data.child.lastName}` },
+    // Child name on the photo-release blank (line above "NAME OF CHILD")
+    { type: 'text', page: 2, x: 115, y: 447, value: `${data.child.firstName} ${data.child.lastName}` },
   ]
 }
