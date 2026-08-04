@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { readApiError } from "@/lib/api-response";
 import type { ChildEntry, PreKDocument } from "@/types/enrollment";
 
 type Props = {
@@ -113,12 +114,36 @@ export default function Step4PreK({ children, onBack, onNext }: Props) {
       [child.tempId]: { ...prev[child.tempId], [documentType]: "uploading" },
     }));
 
-    const path = `${child.tempId}/${documentType}/${file.name}`;
-    const { error } = await supabase.storage
-      .from("prek-documents")
-      .upload(path, file, { upsert: true });
+    // The documents bucket is private: ask the server for a single-use
+    // signed upload URL, then send the file straight to Supabase with it.
+    let path = "";
+    let errorMessage = "";
+    try {
+      const res = await fetch("/api/enrollment/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          documentType,
+          tempId: child.tempId,
+        }),
+      });
+      const apiError = await readApiError(res);
+      if (apiError) {
+        errorMessage = apiError;
+      } else {
+        const { path: signedPath, token } = await res.json();
+        const { error } = await supabase.storage
+          .from("documents")
+          .uploadToSignedUrl(signedPath, token, file);
+        if (error) errorMessage = error.message;
+        else path = signedPath;
+      }
+    } catch (err) {
+      errorMessage = err instanceof Error ? err.message : String(err);
+    }
 
-    if (error) {
+    if (!path) {
       setUploadStates((prev) => ({
         ...prev,
         [child.tempId]: { ...prev[child.tempId], [documentType]: "error" },
@@ -127,20 +152,16 @@ export default function Step4PreK({ children, onBack, onNext }: Props) {
         ...prev,
         [child.tempId]: {
           ...prev[child.tempId],
-          [documentType]: `Upload failed: ${error.message}`,
+          [documentType]: `Upload failed: ${errorMessage}`,
         },
       }));
       return;
     }
 
-    const { data: urlData } = supabase.storage
-      .from("prek-documents")
-      .getPublicUrl(path);
-
     const newDoc: PreKDocument = {
       documentType,
       fileName: file.name,
-      fileUrl: urlData.publicUrl,
+      fileUrl: path,
       fileSize: file.size,
       mimeType: file.type,
     };

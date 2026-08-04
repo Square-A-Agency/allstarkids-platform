@@ -141,6 +141,9 @@ export async function POST(req: Request) {
           fileUrl: doc.fileUrl,
           fileSize: doc.fileSize || null,
           mimeType: doc.mimeType || null,
+          // Parent uploads are already sitting in the documents bucket, so
+          // they are immediately downloadable from the admin dashboard
+          generationStatus: "SUCCESS" as const,
         })),
       });
     }
