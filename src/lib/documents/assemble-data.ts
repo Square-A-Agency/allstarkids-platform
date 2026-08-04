@@ -1,3 +1,4 @@
+import { decryptSsn } from '@/lib/ssn-crypto'
 import type { ApplicationData, InfantFeedingPlan } from './types'
 
 /** Whole years old on `at`, from a pre-formatted MM/DD/YYYY date of birth. */
@@ -114,7 +115,7 @@ export function assembleApplicationData(app: PrismaApplication): ApplicationData
       dateOfBirth: formatDate(app.child.dateOfBirth),
       sex: app.child.sex,
       programType: app.child.programType as ApplicationData['child']['programType'],
-      ssn: app.preKSsn,
+      ssn: app.preKSsn ? decryptSsn(app.preKSsn) : app.preKSsn,
       county: app.preKCounty,
     },
     parent1: {

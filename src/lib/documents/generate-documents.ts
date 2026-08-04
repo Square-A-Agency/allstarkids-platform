@@ -143,13 +143,21 @@ async function generateAndStore(
 
 // ── Main orchestrator ─────────────────────────────────────────────────────────
 
+async function recordAssemblyError(applicationId: string, docType: string, err: unknown): Promise<void> {
+  const generationError = err instanceof Error ? err.message : String(err)
+  console.error(`Document assembly failed for ${docType} (application ${applicationId}):`, err)
+  await prisma.applicationDocument.upsert({
+    where: { applicationId_documentType: { applicationId, documentType: docType } },
+    update: { generationStatus: 'ERROR', generationError },
+    create: { applicationId, documentType: docType, fileName: `${docType}.pdf`, fileUrl: '', mimeType: 'application/pdf', generationStatus: 'ERROR', generationError },
+  })
+}
+
 export async function generateApplicationDocuments(applicationId: string): Promise<void> {
   const application = await prisma.enrollmentApplication.findUniqueOrThrow({
     where: { id: applicationId },
     include: { child: true, family: true },
   })
-
-  const data = assembleApplicationData(application as any)
 
   const docTypes = getDocumentSet({
     programType: application.child.programType,
@@ -157,6 +165,16 @@ export async function generateApplicationDocuments(applicationId: string): Promi
     hasSSN: !!(application.preKSsn && application.preKSsn !== ''),
     needsExtendedDay: application.needsExtendedDay,
   })
+
+  let data: ApplicationData
+  try {
+    data = assembleApplicationData(application as any)
+  } catch (err) {
+    for (const docType of docTypes) {
+      await recordAssemblyError(applicationId, docType, err)
+    }
+    return
+  }
 
   const supabase = getSupabaseClient()
 
@@ -173,7 +191,14 @@ export async function generateSingleDocument(applicationId: string, docType: str
     include: { child: true, family: true },
   })
 
-  const data = assembleApplicationData(application as any)
+  let data: ApplicationData
+  try {
+    data = assembleApplicationData(application as any)
+  } catch (err) {
+    await recordAssemblyError(applicationId, docType, err)
+    return
+  }
+
   const supabase = getSupabaseClient()
   await generateAndStore(applicationId, docType, data, supabase)
 }

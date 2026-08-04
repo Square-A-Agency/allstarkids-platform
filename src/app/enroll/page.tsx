@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Step1FamilyInfo from "@/components/enrollment/Step1FamilyInfo";
 import Step2Children from "@/components/enrollment/Step2Children";
@@ -8,6 +8,7 @@ import Step3Medical from "@/components/enrollment/Step3Medical";
 import Step4PreK from "@/components/enrollment/Step4PreK";
 import Step4Agreements from "@/components/enrollment/Step4Agreements";
 import Step5SignSubmit from "@/components/enrollment/Step5SignSubmit";
+import { isWizardStateShape } from "@/lib/enrollment-draft";
 
 export type { FamilyInfo, ChildEntry, EnrollmentWizardState, EmergencyContact, AuthorizedPickup, InfantFeedingPlan, TopicalPreparations } from "@/types/enrollment";
 import type { FamilyInfo, ChildEntry, EnrollmentWizardState } from "@/types/enrollment";
@@ -28,16 +29,37 @@ export default function EnrollPage() {
     children: [],
   });
   const [loading, setLoading] = useState(true);
+  const [resumed, setResumed] = useState(false);
+  const [restoreDone, setRestoreDone] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const prevStepRef = useRef(1);
+  const lastSavedRef = useRef<string | null>(null);
 
-  // Pre-populate family info from their profile
+  // Restore a saved draft if one exists; otherwise pre-populate family info
+  // from their profile. The draft wins: it is newer and may contain edits.
   useEffect(() => {
-    fetch("/api/family/me")
-      .then((r) => r.json())
-      .then((data) => {
+    async function load() {
+      try {
+        const [draftRes, familyRes] = await Promise.all([
+          fetch("/api/enrollment/draft"),
+          fetch("/api/family/me"),
+        ]);
+        const draftJson = draftRes.ok ? await draftRes.json() : { draft: null };
+
+        if (isWizardStateShape(draftJson.draft)) {
+          setState(draftJson.draft);
+          prevStepRef.current = draftJson.draft.step;
+          lastSavedRef.current = JSON.stringify(draftJson.draft);
+          setResumed(true);
+          return;
+        }
+
+        const data = familyRes.ok ? await familyRes.json() : {};
+        let nextState = state;
         if (data.family) {
           const f = data.family;
-          setState((prev) => ({
-            ...prev,
+          nextState = {
+            ...state,
             familyInfo: {
               firstName: f.firstName || "",
               lastName: f.lastName || "",
@@ -55,11 +77,67 @@ export default function EnrollPage() {
               parent2Employer: f.parent2Employer || "",
               parent2EmployerAddress: f.parent2EmployerAddress || "",
             },
-          }));
+          };
+          setState(nextState);
         }
-      })
-      .finally(() => setLoading(false));
+        // Nothing to resume; treat the (possibly prefilled) state as already
+        // "saved" so an untouched visitor doesn't get a draft row created.
+        lastSavedRef.current = JSON.stringify(nextState);
+      } catch {
+        // No draft, no prefill: start fresh rather than blocking the form
+        lastSavedRef.current = JSON.stringify(state);
+      } finally {
+        setRestoreDone(true);
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
+
+  const saveDraft = useCallback(async (snapshot: EnrollmentWizardState) => {
+    const serialized = JSON.stringify(snapshot);
+    if (serialized === lastSavedRef.current) return;
+    setSaveStatus("saving");
+    try {
+      const res = await fetch("/api/enrollment/draft", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(snapshot),
+      });
+      if (res.ok) lastSavedRef.current = serialized;
+      setSaveStatus(res.ok ? "saved" : "idle");
+    } catch {
+      setSaveStatus("idle");
+    }
+  }, []);
+
+  // Immediate save on step transitions (both state updates batch into one
+  // render, so this snapshot includes the data lifted by onNext/onBack)
+  useEffect(() => {
+    if (!restoreDone) return;
+    if (state.step !== prevStepRef.current) {
+      prevStepRef.current = state.step;
+      void saveDraft(state);
+    }
+  }, [state, restoreDone, saveDraft]);
+
+  // Debounced save for any other lifted change
+  useEffect(() => {
+    if (!restoreDone) return;
+    if (JSON.stringify(state) === lastSavedRef.current) return;
+    const timer = setTimeout(() => void saveDraft(state), 2000);
+    return () => clearTimeout(timer);
+  }, [state, restoreDone, saveDraft]);
+
+  async function handleStartOver() {
+    setRestoreDone(false);
+    try {
+      await fetch("/api/enrollment/draft", { method: "DELETE" });
+    } catch {
+      // Even if the delete fails, let the parent start fresh locally
+    }
+    window.location.reload();
+  }
 
   const goToStep = (step: number) => setState((prev) => ({ ...prev, step }));
   const updateFamilyInfo = (info: FamilyInfo) =>
@@ -105,6 +183,26 @@ export default function EnrollPage() {
 
   return (
     <div>
+      {resumed && (
+        <div className="mb-4 flex items-center justify-between gap-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl px-4 py-3 text-sm">
+          <span>Welcome back! We saved your progress, so you can pick up where you left off.</span>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <button
+              onClick={handleStartOver}
+              className="font-semibold underline hover:text-blue-900"
+            >
+              Start over
+            </button>
+            <button
+              onClick={() => setResumed(false)}
+              aria-label="Dismiss"
+              className="text-blue-400 hover:text-blue-600 font-bold"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
       {/* Step indicator */}
       <div className="mb-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
         <div className="flex items-center gap-1 overflow-x-auto pb-1">
@@ -146,6 +244,10 @@ export default function EnrollPage() {
             style={{ width: `${((displayStep - 1) / (stepLabels.length - 1)) * 100}%` }}
           />
         </div>
+        <p className="mt-2 text-xs text-slate-400 text-right h-4">
+          {saveStatus === "saving" && "Saving…"}
+          {saveStatus === "saved" && "Progress saved"}
+        </p>
       </div>
 
       {state.step === 1 && (

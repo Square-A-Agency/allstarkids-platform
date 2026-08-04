@@ -1,10 +1,19 @@
 import { isAdmin } from "@/lib/admin-auth";
+import { decryptSsn, maskSsn } from "@/lib/ssn-crypto";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import AdminActions from "@/components/admin/AdminActions";
 import RegenerateButton from "@/components/admin/RegenerateButton";
 import GenerateAllButton from "@/components/admin/GenerateAllButton";
+
+function displayMaskedSsn(stored: string): string {
+  try {
+    return maskSsn(decryptSsn(stored));
+  } catch {
+    return "****";
+  }
+}
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -376,7 +385,7 @@ export default async function ApplicationDetailPage({
         <Section title="Pre-K Information">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Field label="County" value={application.preKCounty} />
-            <Field label="SSN" value={application.preKSsn ? "****" : undefined} />
+            <Field label="SSN" value={application.preKSsn ? displayMaskedSsn(application.preKSsn) : undefined} />
             {application.preKSsnNotProvidedReason && (
               <Field label="SSN Not Provided Reason" value={application.preKSsnNotProvidedReason} />
             )}

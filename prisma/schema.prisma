@@ -277,3 +277,13 @@ model StaffApplication {
 
   @@map("staff_applications")
 }
+
+model EnrollmentDraft {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  data        Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("enrollment_drafts")
+}

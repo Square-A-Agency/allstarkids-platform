@@ -77,6 +77,7 @@ export default function Step4PreK({ children, onBack, onNext }: Props) {
   });
 
   const [errors, setErrors] = useState<Record<string, Record<string, string>>>({});
+  const [ssnVisible, setSsnVisible] = useState<Record<string, boolean>>({});
 
   function updateChild(tempId: string, updates: Partial<ChildEntry>) {
     setPreKData((prev) => ({
@@ -337,15 +338,27 @@ export default function Step4PreK({ children, onBack, onNext }: Props) {
                   Social Security Number *
                 </label>
                 {!data.preKSsnNotProvided && (
-                  <input
-                    type="text"
-                    placeholder="XXX-XX-XXXX"
-                    value={data.preKSsn || ""}
-                    onChange={(e) => updateChild(child.tempId, { preKSsn: e.target.value })}
-                    className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      childErrors.preKSsn ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
+                  <div className="relative">
+                    <input
+                      type={ssnVisible[child.tempId] ? "text" : "password"}
+                      autoComplete="off"
+                      placeholder="XXX-XX-XXXX"
+                      value={data.preKSsn || ""}
+                      onChange={(e) => updateChild(child.tempId, { preKSsn: e.target.value })}
+                      className={`w-full border rounded-md px-3 py-2 pr-16 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        childErrors.preKSsn ? "border-red-500" : "border-gray-300"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSsnVisible((prev) => ({ ...prev, [child.tempId]: !prev[child.tempId] }))
+                      }
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600 hover:text-blue-800"
+                    >
+                      {ssnVisible[child.tempId] ? "Hide" : "Show"}
+                    </button>
+                  </div>
                 )}
                 {childErrors.preKSsn && (
                   <p className="text-red-500 text-xs mt-1">{childErrors.preKSsn}</p>

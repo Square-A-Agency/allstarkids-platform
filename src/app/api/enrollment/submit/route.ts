@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 import { generateApplicationDocuments } from "@/lib/documents/generate-documents";
+import { encryptSsn, assertSsnCryptoReady } from "@/lib/ssn-crypto";
 import { NextResponse } from "next/server";
 
 // Submission generates the full document set inline; give it headroom
@@ -14,6 +15,19 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const { familyInfo, children, signature, signatureDate } = body;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (children?.some((c: any) => c?.preKSsn)) {
+    try {
+      assertSsnCryptoReady();
+    } catch (err) {
+      console.error("SSN encryption unavailable:", err);
+      return NextResponse.json(
+        { error: "Submission is temporarily unavailable. Please try again later." },
+        { status: 503 }
+      );
+    }
+  }
 
   // 1. Get the family record
   const family = await prisma.family.findUnique({ where: { clerkUserId: userId } });
@@ -115,7 +129,7 @@ export async function POST(req: Request) {
         mealPlan: child.mealPlan || [],
 
         // Pre-K specific
-        preKSsn: child.preKSsn || null,
+        preKSsn: child.preKSsn ? encryptSsn(child.preKSsn) : null,
         preKCounty: child.preKCounty || null,
         preKPreviousSchool: child.preKPreviousSchool || null,
         preKLastDatePreviousSchool: child.preKLastDatePreviousSchool || null,
@@ -154,6 +168,13 @@ export async function POST(req: Request) {
     } catch (err) {
       console.error(`Document generation failed for application ${application.id}:`, err);
     }
+  }
+
+  // Submission supersedes any saved draft (non-fatal cleanup)
+  try {
+    await prisma.enrollmentDraft.deleteMany({ where: { clerkUserId: userId } });
+  } catch (err) {
+    console.error("Failed to clear enrollment draft:", err);
   }
 
   // 4. Send emails
