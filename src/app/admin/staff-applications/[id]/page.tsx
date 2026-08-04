@@ -1,7 +1,6 @@
 // src/app/admin/staff-applications/[id]/page.tsx
-import { auth } from '@clerk/nextjs/server'
 import { redirect, notFound } from 'next/navigation'
-import { isAdminUser } from '@/lib/admin-auth'
+import { isAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import StaffApplicationActions from '@/components/admin/StaffApplicationActions'
@@ -37,8 +36,7 @@ export default async function StaffApplicationDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { userId } = await auth()
-  if (!isAdminUser(userId)) redirect('/')
+  if (!(await isAdmin())) redirect('/')
 
   const { id } = await params
   const app = await prisma.staffApplication.findUnique({ where: { id } })

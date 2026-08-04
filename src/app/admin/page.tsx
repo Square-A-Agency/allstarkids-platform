@@ -1,6 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { isAdminUser } from "@/lib/admin-auth";
+import { isAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
@@ -44,8 +43,7 @@ export default async function AdminPage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
-  const { userId } = await auth();
-  if (!isAdminUser(userId)) redirect("/");
+  if (!(await isAdmin())) redirect("/");
 
   const { status: statusFilter } = await searchParams;
 

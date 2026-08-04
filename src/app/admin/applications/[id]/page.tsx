@@ -1,5 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
-import { isAdminUser } from "@/lib/admin-auth";
+import { isAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -93,8 +92,7 @@ export default async function ApplicationDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { userId } = await auth();
-  if (!isAdminUser(userId)) redirect("/");
+  if (!(await isAdmin())) redirect("/");
 
   const { id } = await params;
 

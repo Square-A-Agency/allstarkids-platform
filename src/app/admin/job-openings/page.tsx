@@ -1,6 +1,5 @@
-import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { isAdminUser } from '@/lib/admin-auth'
+import { isAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import { createJobOpening, deleteJobOpening } from './actions'
 
@@ -27,8 +26,7 @@ const COLOR_OPTIONS = [
 ]
 
 export default async function JobOpeningsPage() {
-  const { userId } = await auth()
-  if (!isAdminUser(userId)) redirect('/')
+  if (!(await isAdmin())) redirect('/')
 
   const openings = await prisma.jobOpening.findMany({ orderBy: { createdAt: 'asc' } })
 

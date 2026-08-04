@@ -1,13 +1,11 @@
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { isAdminUser } from "@/lib/admin-auth";
+import { isAdmin } from "@/lib/admin-auth";
 import Link from "next/link";
 import Image from "next/image";
 import { UserButton } from "@clerk/nextjs";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await auth();
-  if (!isAdminUser(userId)) redirect("/");
+  if (!(await isAdmin())) redirect("/");
 
   return (
     <div className="min-h-screen bg-slate-50">

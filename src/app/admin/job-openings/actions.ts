@@ -1,13 +1,11 @@
 'use server'
 
-import { auth } from '@clerk/nextjs/server'
-import { isAdminUser } from '@/lib/admin-auth'
+import { isAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
 export async function createJobOpening(formData: FormData) {
-  const { userId } = await auth()
-  if (!isAdminUser(userId)) throw new Error('Unauthorized')
+  if (!(await isAdmin())) throw new Error('Unauthorized')
 
   const title = (formData.get('title') as string).trim()
   const description = (formData.get('description') as string).trim()
@@ -22,8 +20,7 @@ export async function createJobOpening(formData: FormData) {
 }
 
 export async function deleteJobOpening(id: string) {
-  const { userId } = await auth()
-  if (!isAdminUser(userId)) throw new Error('Unauthorized')
+  if (!(await isAdmin())) throw new Error('Unauthorized')
 
   await prisma.jobOpening.delete({ where: { id } })
   revalidatePath('/admin/job-openings')

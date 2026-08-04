@@ -1,7 +1,6 @@
 // src/app/admin/staff-applications/page.tsx
-import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { isAdminUser } from '@/lib/admin-auth'
+import { isAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { STAFF_ROLES, VALID_STAFF_STATUSES } from '@/lib/careers'
@@ -36,8 +35,7 @@ export default async function StaffApplicationsPage({
 }: {
   searchParams: Promise<{ status?: string; role?: string }>
 }) {
-  const { userId } = await auth()
-  if (!isAdminUser(userId)) redirect('/')
+  if (!(await isAdmin())) redirect('/')
 
   const { status: statusFilter, role: roleFilter } = await searchParams
 
