@@ -3,6 +3,8 @@ import { isAdminUser } from "@/lib/admin-auth";
 import { generateSingleDocument } from "@/lib/documents/generate-documents";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 60;
+
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }

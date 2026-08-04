@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { readApiError } from '@/lib/api-response'
 
 interface RegenerateButtonProps {
   applicationId: string
@@ -21,9 +22,9 @@ export default function RegenerateButton({ applicationId, documentType }: Regene
           body: JSON.stringify({ documentType }),
         }
       )
-      const json = await res.json()
-      if (!res.ok || json.error) {
-        alert(`Regeneration failed: ${json.error ?? 'Unknown error'}`)
+      const error = await readApiError(res)
+      if (error) {
+        alert(`Regeneration failed: ${error}`)
         setLoading(false)
         return
       }

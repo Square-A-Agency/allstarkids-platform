@@ -3,6 +3,10 @@ import { isAdminUser } from "@/lib/admin-auth";
 import { generateApplicationDocuments } from "@/lib/documents/generate-documents";
 import { NextResponse } from "next/server";
 
+// Filling and uploading up to nine PDFs can exceed the default function
+// duration on Vercel; give the route explicit headroom.
+export const maxDuration = 60;
+
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }

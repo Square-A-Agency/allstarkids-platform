@@ -3,7 +3,6 @@ import { isAdminUser } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
 import AdminActions from "@/components/admin/AdminActions";
 import RegenerateButton from "@/components/admin/RegenerateButton";
 import GenerateAllButton from "@/components/admin/GenerateAllButton";
@@ -113,26 +112,6 @@ export default async function ApplicationDetailPage({
   const authorizedPickups = (application.authorizedPickups as any[]) ?? [];
   const topicalPreparations = (application.topicalPreparations as Record<string, boolean>) ?? {};
   const infantFeedingPlan = application.infantFeedingPlan as Record<string, any> | null;
-
-  // Generate signed URLs for SUCCESS documents
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-  const successDocs = documents.filter(
-    (doc) => doc.generationStatus === "SUCCESS" && doc.fileUrl
-  );
-  const signedUrlEntries = await Promise.all(
-    successDocs.map(async (doc) => {
-      const { data } = await supabaseAdmin.storage
-        .from("documents")
-        .createSignedUrl(doc.fileUrl, 60);
-      return [doc.id, data?.signedUrl ?? null] as const;
-    })
-  );
-  const signedUrls: Record<string, string> = Object.fromEntries(
-    signedUrlEntries.filter((e): e is [string, string] => e[1] !== null)
-  );
 
   return (
     <div className="space-y-6">
@@ -487,9 +466,9 @@ export default async function ApplicationDetailPage({
                       )}
                     </td>
                     <td className="py-3">
-                      {doc.generationStatus === "SUCCESS" && signedUrls[doc.id] ? (
+                      {doc.generationStatus === "SUCCESS" && doc.fileUrl ? (
                         <a
-                          href={signedUrls[doc.id]}
+                          href={`/api/admin/applications/${application.id}/documents/${doc.id}/download`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm text-blue-600 hover:text-blue-800 font-medium"

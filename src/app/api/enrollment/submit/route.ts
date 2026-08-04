@@ -4,6 +4,10 @@ import { resend } from "@/lib/resend";
 import { generateApplicationDocuments } from "@/lib/documents/generate-documents";
 import { NextResponse } from "next/server";
 
+// Submission generates the full document set inline; give it headroom
+// beyond the default function duration.
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

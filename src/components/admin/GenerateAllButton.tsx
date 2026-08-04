@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { readApiError } from '@/lib/api-response'
 
 export default function GenerateAllButton({ applicationId }: { applicationId: string }) {
   const [loading, setLoading] = useState(false)
@@ -11,9 +12,9 @@ export default function GenerateAllButton({ applicationId }: { applicationId: st
       const res = await fetch(`/api/admin/applications/${applicationId}/generate-documents`, {
         method: 'POST',
       })
-      const json = await res.json()
-      if (!res.ok || json.error) {
-        alert(`Generation failed: ${json.error ?? 'Unknown error'}`)
+      const error = await readApiError(res)
+      if (error) {
+        alert(`Generation failed: ${error}`)
         setLoading(false)
         return
       }

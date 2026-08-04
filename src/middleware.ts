@@ -29,7 +29,19 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   if (!isPublicRoute(request)) {
-    await auth.protect()
+    // API routes must never answer with an HTML sign-in/404 page — clients
+    // parse these responses as JSON. Return a JSON 401 instead.
+    if (pathname.startsWith('/api')) {
+      const { userId } = await auth()
+      if (!userId) {
+        return NextResponse.json(
+          { error: 'Your session has expired. Refresh the page and sign in again.' },
+          { status: 401 }
+        )
+      }
+    } else {
+      await auth.protect()
+    }
   }
 })
 
