@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { readApiError } from '../api-response'
+import { readApiError, readJsonOrError } from '../api-response'
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -46,5 +46,34 @@ describe('readApiError', () => {
     const msg = await readApiError(htmlResponse(504))
     expect(msg).toBeTruthy()
     expect(msg).not.toMatch(/DOCTYPE/)
+  })
+})
+
+describe('readJsonOrError', () => {
+  it('returns parsed data for a successful JSON response, reading the body exactly once', async () => {
+    const res = jsonResponse({ path: 'a/b', token: 'tok' })
+    const out = await readJsonOrError<{ path: string; token: string }>(res)
+    expect(out.data).toEqual({ path: 'a/b', token: 'tok' })
+    expect(out.error).toBeUndefined()
+  })
+
+  it('returns the JSON error message for a failed JSON response', async () => {
+    const out = await readJsonOrError(jsonResponse({ error: 'Unauthorized' }, 401))
+    expect(out.error).toBe('Unauthorized')
+    expect(out.data).toBeUndefined()
+  })
+
+  it('returns a session message for an HTML response without throwing on double read', async () => {
+    const out = await readJsonOrError(htmlResponse(404))
+    expect(out.error).toMatch(/session/i)
+  })
+
+  it('returns an error when a 200 response has an unparseable body', async () => {
+    const res = new Response('not json', {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
+    const out = await readJsonOrError(res)
+    expect(out.error).toBeTruthy()
   })
 })

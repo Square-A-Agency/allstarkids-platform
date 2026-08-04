@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { readApiError } from "@/lib/api-response";
+import { readJsonOrError } from "@/lib/api-response";
 import type { ChildEntry, PreKDocument } from "@/types/enrollment";
 
 type Props = {
@@ -128,16 +128,15 @@ export default function Step4PreK({ children, onBack, onNext }: Props) {
           tempId: child.tempId,
         }),
       });
-      const apiError = await readApiError(res);
-      if (apiError) {
-        errorMessage = apiError;
+      const { data, error: apiError } = await readJsonOrError<{ path: string; token: string }>(res);
+      if (apiError || !data) {
+        errorMessage = apiError ?? "Could not prepare the upload";
       } else {
-        const { path: signedPath, token } = await res.json();
         const { error } = await supabase.storage
           .from("documents")
-          .uploadToSignedUrl(signedPath, token, file);
+          .uploadToSignedUrl(data.path, data.token, file);
         if (error) errorMessage = error.message;
-        else path = signedPath;
+        else path = data.path;
       }
     } catch (err) {
       errorMessage = err instanceof Error ? err.message : String(err);

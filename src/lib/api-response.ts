@@ -27,3 +27,23 @@ export async function readApiError(res: Response): Promise<string | null> {
 
   return `The server returned an unexpected response (status ${res.status}). Refresh the page and try again.`;
 }
+
+/**
+ * Reads a response body exactly once and returns either the parsed JSON
+ * payload or a human-readable error. Use this instead of calling
+ * readApiError and res.json() on the same response: a Response body is a
+ * stream and a second read throws "body stream already read".
+ */
+export async function readJsonOrError<T>(res: Response): Promise<{ data?: T; error?: string }> {
+  const isJson = (res.headers.get("content-type") ?? "").includes("application/json");
+
+  if (res.ok && isJson) {
+    try {
+      return { data: (await res.json()) as T };
+    } catch {
+      return { error: "The server returned an unreadable response. Please try again." };
+    }
+  }
+
+  return { error: (await readApiError(res)) ?? `Request failed (status ${res.status})` };
+}
