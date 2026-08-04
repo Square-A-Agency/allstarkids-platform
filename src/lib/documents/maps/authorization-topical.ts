@@ -15,5 +15,9 @@ export default function authorizationTopicalMap(data: ApplicationData): FieldEnt
     { type: 'checkbox', page: 0, x: 100, y: 420, checked: t.nonRxOintment },
     { type: 'checkbox', page: 0, x: 100, y: 395, checked: t.babyPowder },
     { type: 'checkbox', page: 0, x: 100, y: 370, checked: t.other },
+
+    // "Other (please specify) ___" (x 201-403): N/A unless Other is checked,
+    // in which case the specifics are written in by hand at signing
+    ...(t.other ? [] : [{ type: 'text' as const, page: 0, x: 210, y: 370, value: '' }]),
   ]
 }

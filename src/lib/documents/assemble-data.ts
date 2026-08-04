@@ -1,5 +1,13 @@
 import type { ApplicationData, InfantFeedingPlan } from './types'
 
+/** Whole years old on `at`, from a pre-formatted MM/DD/YYYY date of birth. */
+export function ageFromDob(dob: string, at: Date): number {
+  const [month, day, year] = dob.split('/').map(Number)
+  let age = at.getFullYear() - year
+  if (at.getMonth() + 1 < month || (at.getMonth() + 1 === month && at.getDate() < day)) age--
+  return age
+}
+
 type PrismaApplication = {
   id: string
   familyId: string

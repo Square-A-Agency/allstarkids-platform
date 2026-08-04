@@ -23,5 +23,11 @@ export default function capsReferralMap(data: ApplicationData): FieldEntry[] {
     // Needs care before/after the instructional day
     { type: 'checkbox', page: 0, x: 51,  y: 383, checked: data.preK.needsExtendedDay === true },
     { type: 'checkbox', page: 0, x: 104, y: 383, checked: data.preK.needsExtendedDay === false },
+
+    // "Child Care Provider (if not Pre-K Site)" block (y=193/181/170):
+    // the site itself is the provider on our referrals, so never applicable
+    { type: 'text', page: 0, x: 235, y: 193, fontSize: 9, value: '' },
+    { type: 'text', page: 0, x: 144, y: 181, fontSize: 9, value: '' },
+    { type: 'text', page: 0, x: 116, y: 170, fontSize: 9, value: '' },
   ]
 }

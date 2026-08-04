@@ -23,6 +23,13 @@ export default function transportationMap(data: ApplicationData): FieldEntry[] {
     { type: 'text', page: 0, x: 96,  y: 561, fontSize: 9, value: t.deliveryLocation ?? '' },
     { type: 'text', page: 0, x: 358, y: 561, fontSize: 9, value: t.deliveryTime ?? '' },
 
+    // Second transport paragraph ("My child will be transported from ___ at
+    // ___ / to ___ at ___", y=519/492): a second route the app never collects
+    { type: 'text', page: 0, x: 255, y: 519, fontSize: 9, value: '' },
+    { type: 'text', page: 0, x: 420, y: 519, fontSize: 9, value: '' },
+    { type: 'text', page: 0, x: 100, y: 492, fontSize: 9, value: '' },
+    { type: 'text', page: 0, x: 340, y: 492, fontSize: 9, value: '' },
+
     // Day checkboxes
     ...Object.entries(DAY_Y).map(([day, y]) => ({
       type: 'checkbox' as const,
@@ -36,6 +43,11 @@ export default function transportationMap(data: ApplicationData): FieldEntry[] {
     { type: 'text', page: 0, x: 85, y: 340, value: t.authorizedPerson ?? '' },
     // Fallback procedure lines (y=269/241/214); first line only
     { type: 'text', page: 0, x: 85, y: 271, value: t.fallbackProcedure ?? '' },
+
+    // "The ___ (Location) is approximately ___ miles from the center."
+    // (y=188): distance data the app never collects
+    { type: 'text', page: 0, x: 110, y: 188, fontSize: 9, value: '' },
+    { type: 'text', page: 0, x: 378, y: 188, fontSize: 9, value: '' },
 
     // "I agree to notify the ___ (Facility)" blank (x 79-328, y=131). The
     // facility name is baked into this template's header but not this blank.

@@ -18,17 +18,17 @@ export default function vehicleEmergencyMap(data: ApplicationData): FieldEntry[]
     { type: 'text', page: 0, x: 165, y: 523, value: data.parent1.phone },
     { type: 'text', page: 0, x: 450, y: 523, value: data.parent1.workPhone ?? '' },
 
-    // Emergency contact
-    ...(ec0 ? [
-      { type: 'text' as const, page: 0, x: 122, y: 455, value: ec0.name },
-      { type: 'text' as const, page: 0, x: 430, y: 455, value: ec0.phone },
-    ] : []),
+    // Emergency contact (always emitted so a missing contact reads N/A)
+    { type: 'text', page: 0, x: 122, y: 455, value: ec0?.name ?? '' },
+    { type: 'text', page: 0, x: 430, y: 455, value: ec0?.phone ?? '' },
 
     // Doctor name on the "Child's Doctor ___ Phone ___" row; the clinic goes
     // on the "Medical facility the center uses" line where it belongs.
     { type: 'text', page: 0, x: 157, y: 428, fontSize: 9, value: data.doctor.name ?? '' },
     { type: 'text', page: 0, x: 430, y: 428, value: data.doctor.phone ?? '' },
     { type: 'text', page: 0, x: 234, y: 400, value: data.doctor.clinicName ?? '' },
+    // The facility's own street address is never collected (y=373 blank)
+    { type: 'text', page: 0, x: 130, y: 373, value: '' },
 
     // Medical info
     { type: 'text', page: 0, x: 165, y: 350, value: data.allergies ?? '' },

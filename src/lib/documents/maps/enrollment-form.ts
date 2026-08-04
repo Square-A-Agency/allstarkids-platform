@@ -1,4 +1,5 @@
 import type { ApplicationData, FieldEntry } from '../types'
+import { ageFromDob } from '../assemble-data'
 
 /** "7:30 AM" -> "7:30", for blanks that print their own a.m./p.m. */
 const bareTime = (t: string | null) => (t ?? '').replace(/\s*[AP]\.?M\.?\s*$/i, '')
@@ -17,12 +18,15 @@ export default function enrollmentFormMap(data: ApplicationData): FieldEntry[] {
   return [
     // ── Page 0: Children's Enrollment Form ──────────────────────────────
 
-    // Entrance date (enrollment start month used as proxy)
+    // Entrance date (enrollment start month used as proxy); withdrawal date
+    // is never known at enrollment (blank x 401-554)
     { type: 'text', page: 0, x: 165, y: 575, value: data.schedule.enrollmentStartMonth ?? '' },
+    { type: 'text', page: 0, x: 410, y: 575, value: '' },
 
     // Child info row ("Child's Name___Sex___ Age___ Date of birth:___", y=550)
     { type: 'text', page: 0, x: 125, y: 552, value: `${data.child.firstName} ${data.child.lastName}` },
     { type: 'text', page: 0, x: 346, y: 552, value: data.child.sex },
+    { type: 'text', page: 0, x: 390, y: 552, fontSize: 9, value: String(ageFromDob(data.child.dateOfBirth, new Date())) },
     { type: 'text', page: 0, x: 490, y: 552, fontSize: 9, value: data.child.dateOfBirth },
 
     // Home address (parent1)
@@ -37,16 +41,39 @@ export default function enrollmentFormMap(data: ApplicationData): FieldEntry[] {
     { type: 'text', page: 0, x: 130, y: 454, value: `${data.parent2.firstName ?? ''} ${data.parent2.lastName ?? ''}`.trim() },
     { type: 'text', page: 0, x: 471, y: 454, fontSize: 8, value: data.parent2.phone ?? '' },
     { type: 'text', page: 0, x: 322, y: 429, value: data.parent2.address ?? '' },
+    // City/State/Zip sub-blanks (y=405): the address is one string, so these
+    // stay blank when it exists and read N/A only when the row is unanswered
+    ...(data.parent2.address ? [] : [
+      { type: 'text' as const, page: 0, x: 80,  y: 405, value: '' },
+      { type: 'text' as const, page: 0, x: 326, y: 405, value: '' },
+      { type: 'text' as const, page: 0, x: 449, y: 405, value: '' },
+    ]),
     { type: 'text', page: 0, x: 210, y: 380, value: data.parent2.employer ?? '' },
     { type: 'text', page: 0, x: 474, y: 380, fontSize: 8, value: data.parent2.workPhone ?? '' },
     { type: 'text', page: 0, x: 186, y: 356, fontSize: 8, value: data.parent2.employerAddress ?? '' },
+    ...(data.parent2.employerAddress ? [] : [
+      { type: 'text' as const, page: 0, x: 383, y: 356, fontSize: 8, value: '' },
+      { type: 'text' as const, page: 0, x: 472, y: 356, fontSize: 8, value: '' },
+      { type: 'text' as const, page: 0, x: 516, y: 356, fontSize: 8, value: '' },
+    ]),
 
     // Mother (parent1)
     { type: 'text', page: 0, x: 135, y: 331, value: `${data.parent1.firstName} ${data.parent1.lastName}` },
     { type: 'text', page: 0, x: 471, y: 331, fontSize: 8, value: data.parent1.phone },
+    // Mother's own-address rows ("if different from child's"): her address IS
+    // the child's home address above, so these are always not-applicable
+    { type: 'text', page: 0, x: 330, y: 306, value: '' },
+    { type: 'text', page: 0, x: 80,  y: 282, value: '' },
+    { type: 'text', page: 0, x: 326, y: 282, value: '' },
+    { type: 'text', page: 0, x: 451, y: 282, value: '' },
     { type: 'text', page: 0, x: 210, y: 257, value: data.parent1.employer ?? '' },
     { type: 'text', page: 0, x: 474, y: 257, fontSize: 8, value: data.parent1.workPhone ?? '' },
     { type: 'text', page: 0, x: 186, y: 233, fontSize: 8, value: data.parent1.employerAddress ?? '' },
+    ...(data.parent1.employerAddress ? [] : [
+      { type: 'text' as const, page: 0, x: 342, y: 233, fontSize: 7, value: '' },
+      { type: 'text' as const, page: 0, x: 430, y: 233, fontSize: 7, value: '' },
+      { type: 'text' as const, page: 0, x: 470, y: 233, fontSize: 7, value: '' },
+    ]),
 
     // Living Arrangements "( )" pairs sit just left of each label (row y=206)
     { type: 'checkbox', page: 0, x: 259, y: 208, checked: data.livingArrangement === 'BOTH_PARENTS' },
@@ -60,37 +87,27 @@ export default function enrollmentFormMap(data: ApplicationData): FieldEntry[] {
     { type: 'checkbox', page: 0, x: 378, y: 184, checked: data.legalGuardian === 'FATHER' },
     { type: 'checkbox', page: 0, x: 426, y: 184, checked: data.legalGuardian === 'OTHER' },
 
-    // Pickup 1
-    ...(p0 ? [
-      { type: 'text' as const, page: 0, x: 95,  y: 145, value: p0.name },
-      { type: 'text' as const, page: 0, x: 100, y: 130, value: p0.address },
-      { type: 'text' as const, page: 0, x: 145, y: 104, value: p0.phone },
-      { type: 'text' as const, page: 0, x: 418, y: 104, fontSize: 9, value: p0.relationship },
-    ] : []),
+    // Pickup 1 (always emitted so a missing pickup reads N/A, not blank)
+    { type: 'text', page: 0, x: 95,  y: 145, value: p0?.name ?? '' },
+    { type: 'text', page: 0, x: 100, y: 130, value: p0?.address ?? '' },
+    { type: 'text', page: 0, x: 145, y: 104, value: p0?.phone ?? '' },
+    { type: 'text', page: 0, x: 418, y: 104, fontSize: 9, value: p0?.relationship ?? '' },
 
     // ── Page 1: Continuation ────────────────────────────────────────────
 
     // Pickup 2
-    ...(p1 ? [
-      { type: 'text' as const, page: 1, x: 95,  y: 709, value: p1.name },
-      { type: 'text' as const, page: 1, x: 100, y: 695, value: p1.address },
-      { type: 'text' as const, page: 1, x: 145, y: 668, value: p1.phone },
-      { type: 'text' as const, page: 1, x: 418, y: 668, fontSize: 9, value: p1.relationship },
-    ] : []),
+    { type: 'text', page: 1, x: 95,  y: 709, value: p1?.name ?? '' },
+    { type: 'text', page: 1, x: 100, y: 695, value: p1?.address ?? '' },
+    { type: 'text', page: 1, x: 145, y: 668, value: p1?.phone ?? '' },
+    { type: 'text', page: 1, x: 418, y: 668, fontSize: 9, value: p1?.relationship ?? '' },
 
     // Emergency contacts ("Name ___ Telephone Number ___", rows y=576/552/527)
-    ...(ec0 ? [
-      { type: 'text' as const, page: 1, x: 95,  y: 578, value: ec0.name },
-      { type: 'text' as const, page: 1, x: 445, y: 578, fontSize: 9, value: ec0.phone },
-    ] : []),
-    ...(ec1 ? [
-      { type: 'text' as const, page: 1, x: 95,  y: 554, value: ec1.name },
-      { type: 'text' as const, page: 1, x: 445, y: 554, fontSize: 9, value: ec1.phone },
-    ] : []),
-    ...(ec2 ? [
-      { type: 'text' as const, page: 1, x: 95,  y: 529, value: ec2.name },
-      { type: 'text' as const, page: 1, x: 445, y: 529, fontSize: 9, value: ec2.phone },
-    ] : []),
+    { type: 'text', page: 1, x: 95,  y: 578, value: ec0?.name ?? '' },
+    { type: 'text', page: 1, x: 445, y: 578, fontSize: 9, value: ec0?.phone ?? '' },
+    { type: 'text', page: 1, x: 95,  y: 554, value: ec1?.name ?? '' },
+    { type: 'text', page: 1, x: 445, y: 554, fontSize: 9, value: ec1?.phone ?? '' },
+    { type: 'text', page: 1, x: 95,  y: 529, value: ec2?.name ?? '' },
+    { type: 'text', page: 1, x: 445, y: 529, fontSize: 9, value: ec2?.phone ?? '' },
 
     // School, doctor, medical
     { type: 'text', page: 1, x: 337, y: 505, value: data.currentSchool ?? '' },

@@ -39,6 +39,7 @@ export default function preKChildRegMap(data: ApplicationData): FieldEntry[] {
     { type: 'text', page: 0, x: 346, y: 458, value: data.parent1.firstName },
     { type: 'text', page: 0, x: 210, y: 443, value: data.parent1.address },
     { type: 'text', page: 0, x: 80,  y: 428, value: data.parent1.city },
+    { type: 'text', page: 0, x: 290, y: 428, value: data.parent1.state },
     { type: 'text', page: 0, x: 510, y: 428, value: data.parent1.zip },
     { type: 'text', page: 0, x: 150, y: 413, fontSize: 8, value: data.parent1.phone },
     { type: 'text', page: 0, x: 425, y: 413, fontSize: 8, value: data.parent1.phone },
@@ -46,27 +47,44 @@ export default function preKChildRegMap(data: ApplicationData): FieldEntry[] {
     { type: 'text', page: 0, x: 185, y: 384, value: data.parent1.employer ?? '' },
     { type: 'text', page: 0, x: 458, y: 384, fontSize: 8, value: data.parent1.workPhone ?? '' },
     { type: 'text', page: 0, x: 80,  y: 369, value: data.parent1.employerAddress ?? '' },
+    // Employer City/State/Zip row (y=357): blank when the one-string employer
+    // address above carries the answer, N/A when the row is unanswered
+    ...(data.parent1.employerAddress ? [] : [
+      { type: 'text' as const, page: 0, x: 80,  y: 357, value: '' },
+      { type: 'text' as const, page: 0, x: 282, y: 357, value: '' },
+      { type: 'text' as const, page: 0, x: 390, y: 357, value: '' },
+    ]),
 
     // Parent/Guardian #2 (LAST NAME row y=325; phones row y=284; Work y=254)
     { type: 'text', page: 0, x: 190, y: 327, value: data.parent2.lastName ?? '' },
     { type: 'text', page: 0, x: 346, y: 327, value: data.parent2.firstName ?? '' },
     { type: 'text', page: 0, x: 210, y: 313, value: data.parent2.address ?? '' },
+    ...(data.parent2.address ? [] : [
+      { type: 'text' as const, page: 0, x: 80,  y: 297, value: '' },
+      { type: 'text' as const, page: 0, x: 290, y: 297, value: '' },
+      { type: 'text' as const, page: 0, x: 405, y: 297, value: '' },
+    ]),
     { type: 'text', page: 0, x: 150, y: 284, fontSize: 8, value: data.parent2.phone ?? '' },
+    { type: 'text', page: 0, x: 425, y: 284, fontSize: 8, value: data.parent2.phone ?? '' },
+    // Parent 2's email is never collected by the application
+    { type: 'text', page: 0, x: 125, y: 270, value: '' },
     { type: 'text', page: 0, x: 185, y: 256, value: data.parent2.employer ?? '' },
     { type: 'text', page: 0, x: 458, y: 256, fontSize: 8, value: data.parent2.workPhone ?? '' },
     { type: 'text', page: 0, x: 80,  y: 242, value: data.parent2.employerAddress ?? '' },
+    ...(data.parent2.employerAddress ? [] : [
+      { type: 'text' as const, page: 0, x: 80,  y: 229, value: '' },
+      { type: 'text' as const, page: 0, x: 268, y: 229, value: '' },
+      { type: 'text' as const, page: 0, x: 376, y: 229, value: '' },
+    ]),
 
-    // Emergency contacts (columns: name / relationship / cell)
-    ...(ec0 ? [
-      { type: 'text' as const, page: 0, x: 55,  y: 180, value: ec0.name },
-      { type: 'text' as const, page: 0, x: 155, y: 180, value: ec0.relationship },
-      { type: 'text' as const, page: 0, x: 265, y: 180, value: ec0.phone },
-    ] : []),
-    ...(ec1 ? [
-      { type: 'text' as const, page: 0, x: 55,  y: 165, value: ec1.name },
-      { type: 'text' as const, page: 0, x: 155, y: 165, value: ec1.relationship },
-      { type: 'text' as const, page: 0, x: 265, y: 165, value: ec1.phone },
-    ] : []),
+    // Emergency contacts (columns: name / relationship / cell), always
+    // emitted so missing contacts read N/A rather than leaving blanks
+    { type: 'text', page: 0, x: 55,  y: 180, value: ec0?.name ?? '' },
+    { type: 'text', page: 0, x: 155, y: 180, value: ec0?.relationship ?? '' },
+    { type: 'text', page: 0, x: 265, y: 180, value: ec0?.phone ?? '' },
+    { type: 'text', page: 0, x: 55,  y: 165, value: ec1?.name ?? '' },
+    { type: 'text', page: 0, x: 155, y: 165, value: ec1?.relationship ?? '' },
+    { type: 'text', page: 0, x: 265, y: 165, value: ec1?.phone ?? '' },
 
     // ── Page 1: Child Maintenance (Page 2 of 3) ─────────────────────────
 
@@ -82,31 +100,19 @@ export default function preKChildRegMap(data: ApplicationData): FieldEntry[] {
     { type: 'checkbox', page: 1, x: 362, y: 676, checked: data.legalGuardian === 'FATHER' },
     { type: 'checkbox', page: 1, x: 425, y: 676, checked: data.legalGuardian === 'OTHER' },
 
-    // Authorized pickups (numbered rows measured at y=625/610/594/579)
-    ...(p0 ? [
-      { type: 'text' as const, page: 1, x: 37,  y: 627, value: p0.name },
-      { type: 'text' as const, page: 1, x: 145, y: 627, value: p0.address },
-      { type: 'text' as const, page: 1, x: 350, y: 627, value: p0.relationship },
-      { type: 'text' as const, page: 1, x: 440, y: 627, value: p0.phone },
-    ] : []),
-    ...(p1 ? [
-      { type: 'text' as const, page: 1, x: 37,  y: 612, value: p1.name },
-      { type: 'text' as const, page: 1, x: 145, y: 612, value: p1.address },
-      { type: 'text' as const, page: 1, x: 350, y: 612, value: p1.relationship },
-      { type: 'text' as const, page: 1, x: 440, y: 612, value: p1.phone },
-    ] : []),
-    ...(p2 ? [
-      { type: 'text' as const, page: 1, x: 37,  y: 596, value: p2.name },
-      { type: 'text' as const, page: 1, x: 145, y: 596, value: p2.address },
-      { type: 'text' as const, page: 1, x: 350, y: 596, value: p2.relationship },
-      { type: 'text' as const, page: 1, x: 440, y: 596, value: p2.phone },
-    ] : []),
-    ...(p3 ? [
-      { type: 'text' as const, page: 1, x: 37,  y: 581, value: p3.name },
-      { type: 'text' as const, page: 1, x: 145, y: 581, value: p3.address },
-      { type: 'text' as const, page: 1, x: 350, y: 581, value: p3.relationship },
-      { type: 'text' as const, page: 1, x: 440, y: 581, value: p3.phone },
-    ] : []),
+    // Authorized pickups (numbered rows measured at y=625/610/594/579),
+    // always emitted so unused rows read N/A
+    ...[
+      { p: p0, y: 627 },
+      { p: p1, y: 612 },
+      { p: p2, y: 596 },
+      { p: p3, y: 581 },
+    ].flatMap(({ p, y }) => [
+      { type: 'text' as const, page: 1, x: 37,  y, value: p?.name ?? '' },
+      { type: 'text' as const, page: 1, x: 145, y, value: p?.address ?? '' },
+      { type: 'text' as const, page: 1, x: 350, y, value: p?.relationship ?? '' },
+      { type: 'text' as const, page: 1, x: 440, y, value: p?.phone ?? '' },
+    ]),
 
     // Physician (blank after "SOURCE):" ends x~418, narrow, hence size 8;
     // doctor name only, the clinic has no field on this form)
