@@ -93,10 +93,18 @@ describe('getDocumentSet', () => {
   })
 
   // ── Conditional forms (all groups) ───────────────────────────────────────
-  it('includes ssn_information when SSN not provided (any program)', () => {
-    for (const programType of ['INFANT', 'TODDLER', 'PRESCHOOL', 'PRE_K', 'AFTER_SCHOOL']) {
-      const docs = getDocumentSet({ programType, usesTransportation: false, hasSSN: false, needsExtendedDay: false })
-      expect(docs).toContain('ssn_information')
+  it('includes ssn_information for PRE_K when SSN not provided', () => {
+    const docs = getDocumentSet({ programType: 'PRE_K', usesTransportation: false, hasSSN: false, needsExtendedDay: false })
+    expect(docs).toContain('ssn_information')
+  })
+
+  it('never includes ssn_information outside PRE_K', () => {
+    const programs = ['INFANT', 'TODDLER', 'PRESCHOOL', 'AFTER_SCHOOL', 'SUMMER_CAMP_EAGLETS', 'SUMMER_CAMP_EAGLES']
+    for (const programType of programs) {
+      for (const hasSSN of [false, true]) {
+        const docs = getDocumentSet({ programType, usesTransportation: false, hasSSN, needsExtendedDay: false })
+        expect(docs, `${programType} hasSSN=${hasSSN}`).not.toContain('ssn_information')
+      }
     }
   })
 

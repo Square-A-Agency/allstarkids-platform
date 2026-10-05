@@ -51,8 +51,11 @@ export function getDocumentSet(params: DocumentSetParams): string[] {
   // programs that ride the bus.
   docs.push('vehicle_emergency')
 
+  // Only the Pre-K application collects an SSN, so the SSN information form
+  // (filed when no SSN is given) applies to Pre-K alone.
+  if (programType === 'PRE_K' && !hasSSN) docs.push('ssn_information')
+
   // Conditional forms applicable across all groups
-  if (!hasSSN) docs.push('ssn_information')
   if (needsExtendedDay) docs.push('caps_referral')
 
   return docs
