@@ -75,8 +75,9 @@ describe('generateApplicationDocuments — decrypt failure containment', () => {
         expect(args.create.generationError).toBeTruthy()
         expect(args.update.generationStatus).toBe('ERROR')
       }
-      // PRE_K, no transportation, hasSSN true, no extended day -> 3 doc types
-      expect(mockUpsert).toHaveBeenCalledTimes(3)
+      // PRE_K, no transportation, hasSSN true, no extended day -> 4 doc types
+      // (vehicle_emergency is required for every age group)
+      expect(mockUpsert).toHaveBeenCalledTimes(4)
     } finally {
       process.env.SSN_ENCRYPTION_KEY = savedKey
     }

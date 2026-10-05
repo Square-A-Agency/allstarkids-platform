@@ -14,7 +14,6 @@ describe('getDocumentSet', () => {
   it('INFANT does NOT get transportation or prek_child_reg', () => {
     const docs = getDocumentSet({ programType: 'INFANT', usesTransportation: true, hasSSN: true, needsExtendedDay: false })
     expect(docs).not.toContain('transportation')
-    expect(docs).not.toContain('vehicle_emergency')
     expect(docs).not.toContain('prek_child_reg')
   })
 
@@ -56,7 +55,6 @@ describe('getDocumentSet', () => {
   it('PRE_K does NOT get transportation when usesTransportation is false', () => {
     const docs = getDocumentSet({ programType: 'PRE_K', usesTransportation: false, hasSSN: true, needsExtendedDay: false })
     expect(docs).not.toContain('transportation')
-    expect(docs).not.toContain('vehicle_emergency')
   })
 
   // ── After School / Summer Camp ────────────────────────────────────────────
@@ -80,6 +78,18 @@ describe('getDocumentSet', () => {
     expect(docs).toContain('enrollment_form')
     expect(docs).not.toContain('prek_child_reg')
     expect(docs).not.toContain('infant_feeding')
+  })
+
+  // ── Emergency forms (every age group) ────────────────────────────────────
+  it('every program gets vehicle_emergency, with or without transportation', () => {
+    const programs = ['INFANT', 'TODDLER', 'PRESCHOOL', 'PRE_K', 'AFTER_SCHOOL', 'SUMMER_CAMP_EAGLETS', 'SUMMER_CAMP_EAGLES']
+    for (const programType of programs) {
+      for (const usesTransportation of [false, true]) {
+        const docs = getDocumentSet({ programType, usesTransportation, hasSSN: true, needsExtendedDay: false })
+        expect(docs, `${programType} transport=${usesTransportation}`).toContain('vehicle_emergency')
+        expect(docs.filter(d => d === 'vehicle_emergency')).toHaveLength(1)
+      }
+    }
   })
 
   // ── Conditional forms (all groups) ───────────────────────────────────────

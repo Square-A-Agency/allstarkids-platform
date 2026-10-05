@@ -34,7 +34,7 @@ export function getDocumentSet(params: DocumentSetParams): string[] {
     case 'PRE_K':
       // Forms 2-3, 5-9
       docs.push('authorization_topical', 'no_liability', 'prek_child_reg')
-      if (usesTransportation) docs.push('transportation', 'vehicle_emergency')
+      if (usesTransportation) docs.push('transportation')
       break
 
     case 'AFTER_SCHOOL':
@@ -43,9 +43,13 @@ export function getDocumentSet(params: DocumentSetParams): string[] {
     default:
       // Forms 1-3, 5-6, 8-9
       docs.push('enrollment_form', 'authorization_topical', 'no_liability')
-      if (usesTransportation) docs.push('transportation', 'vehicle_emergency')
+      if (usesTransportation) docs.push('transportation')
       break
   }
+
+  // Emergency forms are required for every age group, not only the
+  // programs that ride the bus.
+  docs.push('vehicle_emergency')
 
   // Conditional forms applicable across all groups
   if (!hasSSN) docs.push('ssn_information')
