@@ -14,7 +14,14 @@ export async function POST(req: Request) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { familyInfo, children, signature, signatureDate } = body;
+  const { familyInfo, children, eSignConsent } = body;
+
+  if (eSignConsent !== true) {
+    return NextResponse.json(
+      { error: "Please agree to review and sign your enrollment documents electronically." },
+      { status: 400 }
+    );
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (children?.some((c: any) => c?.preKSsn)) {
@@ -136,9 +143,8 @@ export async function POST(req: Request) {
         preKLastHealthScreening: child.preKLastHealthScreening || null,
         preKSsnNotProvidedReason: child.preKSsnNotProvidedReason || null,
 
-        // Signature
-        signatureParent: signature,
-        signatureDate: new Date(signatureDate),
+        // Electronic signing consent (the signature itself is captured per document on /enroll/sign)
+        eSignConsentAt: new Date(),
       },
     });
 
@@ -193,6 +199,8 @@ export async function POST(req: Request) {
         <h2>Thank you, ${familyInfo.firstName}!</h2>
         <p>We've received your enrollment application for <strong>${childNames}</strong>.</p>
         <p>Our team will review your application and be in touch within 3–5 business days to schedule a playdate.</p>
+        <p><a href="${(process.env.NEXT_PUBLIC_APP_URL ?? "https://allstarkids-platform.vercel.app").replace(/\/$/, "")}/enroll/sign" style="display:inline-block;background:#1d4ed8;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold">Sign your enrollment documents</a></p>
+        <p>Signing takes a few minutes and can be done from your phone. Nothing needs to be printed.</p>
         <p>If you have any questions, please contact us at <a href="mailto:info@allstarkidsacademyga.com">info@allstarkidsacademyga.com</a>.</p>
         <br/>
         <p>— All Star Kids Academy<br/>4518 Covington Hwy, Decatur, GA 30035<br/>(Mon–Fri, 6:00 AM – 6:30 PM)</p>
@@ -211,6 +219,7 @@ export async function POST(req: Request) {
           <p><strong>Children:</strong> ${childNames}</p>
           <p><strong>Programs:</strong> ${children.map((c: { programType: string }) => c.programType).join(", ")}</p>
           <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+          <p><strong>Documents:</strong> awaiting parent signature</p>
           <p>Log in to the admin dashboard to review and take action.</p>
         `,
       });

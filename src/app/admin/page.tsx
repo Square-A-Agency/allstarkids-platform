@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import SigningBadge from "@/components/admin/SigningBadge";
+import { signingSummary } from "@/lib/documents/signing-summary";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -52,7 +54,7 @@ export default async function AdminPage({
   const [applications, total, pending, accepted] = await Promise.all([
     prisma.enrollmentApplication.findMany({
       where,
-      include: { child: true, family: true },
+      include: { child: true, family: true, documents: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.enrollmentApplication.count(),
@@ -114,13 +116,14 @@ export default async function AdminPage({
               <th className="px-4 py-3 text-left font-medium text-gray-600">Family</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Submitted</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Status</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">Signatures</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {applications.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
                   No applications found.
                 </td>
               </tr>
@@ -150,6 +153,9 @@ export default async function AdminPage({
                   >
                     {statusLabels[app.status] ?? app.status}
                   </span>
+                </td>
+                <td className="px-4 py-3">
+                  <SigningBadge summary={signingSummary(app.documents)} signedAt={app.documentsSignedAt} hasDocuments={app.documents.length > 0} />
                 </td>
                 <td className="px-4 py-3">
                   <Link
@@ -183,6 +189,9 @@ export default async function AdminPage({
               >
                 {statusLabels[app.status] ?? app.status}
               </span>
+            </div>
+            <div>
+              <SigningBadge summary={signingSummary(app.documents)} signedAt={app.documentsSignedAt} hasDocuments={app.documents.length > 0} />
             </div>
             <p className="text-sm text-gray-600">
               {PROGRAM_LABELS[app.child.programType] ?? app.child.programType} · {app.track}

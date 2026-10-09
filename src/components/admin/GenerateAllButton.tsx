@@ -6,12 +6,24 @@ import { readApiError } from '@/lib/api-response'
 export default function GenerateAllButton({ applicationId }: { applicationId: string }) {
   const [loading, setLoading] = useState(false)
 
-  async function handleGenerate() {
+  async function handleGenerate(confirm = false) {
     setLoading(true)
     try {
       const res = await fetch(`/api/admin/applications/${applicationId}/generate-documents`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm }),
       })
+      const conflict = res.status === 409 ? await res.json().catch(() => ({})) : null
+      if (conflict) {
+        setLoading(false)
+        if (conflict.requiresConfirm && !confirm) {
+          if (window.confirm(conflict.error)) await handleGenerate(true)
+        } else {
+          alert(`Generation failed: ${conflict.error ?? 'Conflict'}`)
+        }
+        return
+      }
       const error = await readApiError(res)
       if (error) {
         alert(`Generation failed: ${error}`)
@@ -27,7 +39,7 @@ export default function GenerateAllButton({ applicationId }: { applicationId: st
 
   return (
     <button
-      onClick={handleGenerate}
+      onClick={() => handleGenerate()}
       disabled={loading}
       className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg px-4 py-2 text-sm transition-colors"
     >

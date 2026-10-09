@@ -6,6 +6,10 @@ import Link from "next/link";
 import AdminActions from "@/components/admin/AdminActions";
 import RegenerateButton from "@/components/admin/RegenerateButton";
 import GenerateAllButton from "@/components/admin/GenerateAllButton";
+import SigningBadge from "@/components/admin/SigningBadge";
+import { signingSummary } from "@/lib/documents/signing-summary";
+import { isSignableDocType } from "@/lib/documents/signature-lines";
+import { DOCUMENT_LABELS } from "@/lib/documents/labels";
 
 function displayMaskedSsn(stored: string): string {
   try {
@@ -51,15 +55,7 @@ const DOC_LABELS: Record<string, string> = {
   FORM_3300: "Form 3300 (Eye, Ear, Dental & Nutrition)",
   FORM_3232: "Form 3232 (DHR Immunization Certificate)",
   // Generated document types
-  enrollment_form: "Enrollment Form",
-  authorization_topical: "Authorization — Topical Preparations",
-  no_liability: "No Liability Agreement",
-  infant_feeding: "Infant Feeding Plan",
-  transportation: "Transportation Agreement",
-  vehicle_emergency: "Vehicle Emergency Card",
-  prek_child_reg: "Pre-K Child Registration",
-  ssn_information: "SSN Information",
-  caps_referral: "CAPS Referral",
+  ...DOCUMENT_LABELS,
 };
 
 function formatDocType(documentType: string): string {
@@ -153,6 +149,10 @@ export default async function ApplicationDetailPage({
             >
               {statusLabels[application.status] ?? application.status}
             </span>
+          </div>
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Signatures</span>
+            <div className="mt-1"><SigningBadge summary={signingSummary(documents)} signedAt={application.documentsSignedAt} hasDocuments={documents.length > 0} /></div>
           </div>
           <div>
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Submitted</span>
@@ -436,6 +436,9 @@ export default async function ApplicationDetailPage({
                   <th className="py-2 pr-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
                     Status
                   </th>
+                  <th className="py-2 pr-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    Signed
+                  </th>
                   <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
                     Actions
                   </th>
@@ -472,21 +475,35 @@ export default async function ApplicationDetailPage({
                         </p>
                       )}
                     </td>
+                    <td className="py-3 pr-4 text-xs text-gray-600">
+                      {!isSignableDocType(doc.documentType) ? "n/a"
+                        : doc.signedAt ? new Date(doc.signedAt).toLocaleString("en-US") : "Not yet"}
+                    </td>
                     <td className="py-3">
                       {doc.generationStatus === "SUCCESS" && doc.fileUrl ? (
-                        <a
-                          href={`/api/admin/applications/${application.id}/documents/${doc.id}/download`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          Download
-                        </a>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <a
+                            href={`/api/admin/applications/${application.id}/documents/${doc.id}/download`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            {doc.signedFileUrl ? "Download signed" : "Download"}
+                          </a>
+                          {doc.signedFileUrl && (
+                            <a
+                              href={`/api/admin/applications/${application.id}/documents/${doc.id}/download?version=original`}
+                              target="_blank" rel="noopener noreferrer"
+                              className="text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              original
+                            </a>
+                          )}
+                          {isSignableDocType(doc.documentType) && (
+                            <RegenerateButton applicationId={application.id} documentType={doc.documentType} />
+                          )}
+                        </div>
                       ) : (
-                        <RegenerateButton
-                          applicationId={application.id}
-                          documentType={doc.documentType}
-                        />
+                        <RegenerateButton applicationId={application.id} documentType={doc.documentType} />
                       )}
                     </td>
                   </tr>

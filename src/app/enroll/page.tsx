@@ -7,7 +7,7 @@ import Step2Children from "@/components/enrollment/Step2Children";
 import Step3Medical from "@/components/enrollment/Step3Medical";
 import Step4PreK from "@/components/enrollment/Step4PreK";
 import Step4Agreements from "@/components/enrollment/Step4Agreements";
-import Step5SignSubmit from "@/components/enrollment/Step5SignSubmit";
+import Step5ReviewSubmit from "@/components/enrollment/Step5ReviewSubmit";
 import { isWizardStateShape } from "@/lib/enrollment-draft";
 
 export type { FamilyInfo, ChildEntry, EnrollmentWizardState, EmergencyContact, AuthorizedPickup, InfantFeedingPlan, TopicalPreparations } from "@/types/enrollment";
@@ -149,11 +149,11 @@ export default function EnrollPage() {
 
   // Step labels depend on whether there are Pre-K children
   const stepLabels = hasPreKChild
-    ? ["Family Info", "Children", "Medical", "Pre-K Forms", "Agreements", "Sign & Submit"]
-    : ["Family Info", "Children", "Medical", "Agreements", "Sign & Submit"];
+    ? ["Family Info", "Children", "Medical", "Pre-K Forms", "Agreements", "Review & Submit"]
+    : ["Family Info", "Children", "Medical", "Agreements", "Review & Submit"];
 
   // Map internal step number (1–6) to display step index (0-based) for the indicator
-  // Internal: 1=Family, 2=Children, 3=Medical, 4=PreK(if prek)/Agreements(if not), 5=Agreements(if prek)/SignSubmit(if not), 6=SignSubmit(if prek)
+  // Internal: 1=Family, 2=Children, 3=Medical, 4=PreK(if prek)/Agreements(if not), 5=Agreements(if prek)/ReviewSubmit(if not), 6=ReviewSubmit(if prek)
   function getDisplayStep(): number {
     if (hasPreKChild) {
       // 6 steps: 1→1, 2→2, 3→3, 4→4, 5→5, 6→6
@@ -301,10 +301,11 @@ export default function EnrollPage() {
         />
       )}
       {state.step === 6 && (
-        <Step5SignSubmit
+        <Step5ReviewSubmit
           state={state}
           onBack={() => goToStep(5)}
-          onSubmitted={() => router.push("/enroll/confirmation")}
+          onConsentChange={(checked) => setState((prev) => ({ ...prev, eSignConsent: checked }))}
+          onSubmitted={() => router.push("/enroll/sign")}
         />
       )}
     </div>

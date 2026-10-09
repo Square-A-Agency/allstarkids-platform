@@ -1,9 +1,10 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@supabase/supabase-js'
 import { assembleApplicationData } from './assemble-data'
 import { fillPdf } from './fill-pdf'
+import { uploadDocument, moveDocument, sha256Hex, historyPathFor } from './storage'
+import { signedPathFor } from './sign-document'
 import type { ApplicationData, FieldEntry } from './types'
 
 // ── Document set routing ──────────────────────────────────────────────────────
@@ -90,62 +91,87 @@ function loadOriginalPdf(docType: string): Uint8Array {
   return new Uint8Array(fs.readFileSync(filePath))
 }
 
-// ── Supabase upload ────────────────────────────────────────────────────────────
-
-function getSupabaseClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
-
-async function uploadToStorage(
-  supabase: ReturnType<typeof getSupabaseClient>,
-  familyId: string,
-  childId: string,
-  docType: string,
-  pdfBytes: Uint8Array
-): Promise<string> {
-  const storagePath = `documents/${familyId}/${childId}/${docType}.pdf`
-  const { error } = await supabase.storage
-    .from('documents')
-    .upload(storagePath, pdfBytes, {
-      contentType: 'application/pdf',
-      upsert: true,
-    })
-  if (error) throw new Error(`Supabase upload failed for ${docType}: ${error.message}`)
-  return storagePath
-}
-
 // ── Per-document generation (shared by both orchestrators) ────────────────────
 
-async function generateAndStore(
+export const SIGNED_FIELDS_CLEARED = {
+  signedFileUrl: null,
+  signedAt: null,
+  signedIp: null,
+  signedUserAgent: null,
+  signedSha256: null,
+} as const
+
+export async function generateAndStore(
   applicationId: string,
   docType: string,
-  data: ApplicationData,
-  supabase: ReturnType<typeof getSupabaseClient>
+  data: ApplicationData
 ): Promise<void> {
   let generationStatus: 'SUCCESS' | 'ERROR' = 'SUCCESS'
   let generationError: string | null = null
   let fileUrl = ''
+  let unsignedSha256: string | null = null
+  let clearSigned = false
+
+  const existing = await prisma.applicationDocument.findUnique({
+    where: { applicationId_documentType: { applicationId, documentType: docType } },
+  })
 
   try {
     const mapFn = await getMap(docType)
     const fields = mapFn(data)
     const originalBytes = loadOriginalPdf(docType)
     const filledBytes = await fillPdf(originalBytes, fields)
-    fileUrl = await uploadToStorage(supabase, data.familyId, data.childId, docType, filledBytes)
+
+    // A signed copy must never be left attached to bytes that are about to
+    // change. Only once new bytes exist, park it under history and clear the
+    // signature fields; the parent is asked to sign the regenerated form again.
+    if (existing?.signedFileUrl || existing?.signedAt) {
+      // A claimed-but-never-finalized row has no signedFileUrl yet; derive the
+      // path it would have been uploaded to. Not-found is tolerated below.
+      const signedSource = existing.signedFileUrl ?? signedPathFor(existing.fileUrl)
+      try {
+        await moveDocument(signedSource, historyPathFor(signedSource, new Date()))
+      } catch (moveErr) {
+        const message = moveErr instanceof Error ? moveErr.message : String(moveErr)
+        // A source that is already gone was archived by an earlier attempt.
+        if (!/not found/i.test(message)) {
+          console.error(`Could not archive signed copy for ${docType} (application ${applicationId}):`, moveErr)
+          await prisma.applicationDocument.upsert({
+            where: { applicationId_documentType: { applicationId, documentType: docType } },
+            update: { generationStatus: 'ERROR', generationError: `could not archive signed copy: ${message}` },
+            create: { applicationId, documentType: docType, fileName: `${docType}.pdf`, fileUrl: '', mimeType: 'application/pdf', generationStatus: 'ERROR', generationError: `could not archive signed copy: ${message}` },
+          })
+          return
+        }
+      }
+      clearSigned = true
+    }
+
+    fileUrl = `documents/${data.familyId}/${data.childId}/${docType}.pdf`
+    await uploadDocument(fileUrl, filledBytes)
+    unsignedSha256 = sha256Hex(filledBytes)
+    // New bytes are in place: any signature (even one claimed mid-flight after
+    // our snapshot) no longer matches them.
+    clearSigned = true
   } catch (err) {
     generationStatus = 'ERROR'
     generationError = err instanceof Error ? err.message : String(err)
+    fileUrl = ''
     console.error(`Document generation failed for ${docType} (application ${applicationId}):`, err)
   }
 
-  await prisma.applicationDocument.upsert({
-    where: { applicationId_documentType: { applicationId, documentType: docType } },
-    update: { generationStatus, generationError, ...(fileUrl ? { fileUrl, fileName: `${docType}.pdf`, mimeType: 'application/pdf' } : {}) },
-    create: { applicationId, documentType: docType, fileName: `${docType}.pdf`, fileUrl, mimeType: 'application/pdf', generationStatus, generationError },
-  })
+  const fileFields = fileUrl ? { fileUrl, fileName: `${docType}.pdf`, mimeType: 'application/pdf', unsignedSha256 } : {}
+
+  await prisma.$transaction([
+    prisma.applicationDocument.upsert({
+      where: { applicationId_documentType: { applicationId, documentType: docType } },
+      update: { generationStatus, generationError, ...fileFields, ...(clearSigned ? SIGNED_FIELDS_CLEARED : {}) },
+      create: { applicationId, documentType: docType, fileName: `${docType}.pdf`, fileUrl, mimeType: 'application/pdf', generationStatus, generationError, unsignedSha256 },
+    }),
+    ...(clearSigned
+      ? [prisma.enrollmentApplication.update({ where: { id: applicationId }, data: { documentsSignedAt: null } })]
+      : []),
+  ])
 }
 
 // ── Main orchestrator ─────────────────────────────────────────────────────────
@@ -183,10 +209,8 @@ export async function generateApplicationDocuments(applicationId: string): Promi
     return
   }
 
-  const supabase = getSupabaseClient()
-
   for (const docType of docTypes) {
-    await generateAndStore(applicationId, docType, data, supabase)
+    await generateAndStore(applicationId, docType, data)
   }
 }
 
@@ -206,6 +230,5 @@ export async function generateSingleDocument(applicationId: string, docType: str
     return
   }
 
-  const supabase = getSupabaseClient()
-  await generateAndStore(applicationId, docType, data, supabase)
+  await generateAndStore(applicationId, docType, data)
 }

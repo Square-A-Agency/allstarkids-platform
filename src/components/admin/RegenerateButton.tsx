@@ -11,17 +11,24 @@ interface RegenerateButtonProps {
 export default function RegenerateButton({ applicationId, documentType }: RegenerateButtonProps) {
   const [loading, setLoading] = useState(false)
 
-  async function handleRegenerate() {
+  async function handleRegenerate(confirm = false) {
     setLoading(true)
     try {
-      const res = await fetch(
-        `/api/admin/applications/${applicationId}/regenerate-document`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ documentType }),
+      const res = await fetch(`/api/admin/applications/${applicationId}/regenerate-document`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentType, confirm }),
+      })
+      const conflict = res.status === 409 ? await res.json().catch(() => ({})) : null
+      if (conflict) {
+        setLoading(false)
+        if (conflict.requiresConfirm && !confirm) {
+          if (window.confirm(conflict.error)) await handleRegenerate(true)
+        } else {
+          alert(`Regeneration failed: ${conflict.error ?? 'Conflict'}`)
         }
-      )
+        return
+      }
       const error = await readApiError(res)
       if (error) {
         alert(`Regeneration failed: ${error}`)
@@ -38,7 +45,7 @@ export default function RegenerateButton({ applicationId, documentType }: Regene
 
   return (
     <button
-      onClick={handleRegenerate}
+      onClick={() => handleRegenerate()}
       disabled={loading}
       className="text-xs px-2.5 py-1.5 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
     >

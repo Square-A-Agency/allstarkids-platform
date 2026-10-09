@@ -45,15 +45,15 @@ const familyInfo = {
   parent2WorkPhone: '', parent2Employer: '', parent2EmployerAddress: '',
 }
 
-function submitRequest() {
+function submitRequest(overrides: Record<string, unknown> = {}) {
   return new Request('https://example.com/api/enrollment/submit', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       familyInfo,
       children: [],
-      signature: 'Ann Alpha',
-      signatureDate: '2026-08-04',
+      eSignConsent: true,
+      ...overrides,
     }),
   })
 }
@@ -87,8 +87,7 @@ describe('POST /api/enrollment/submit draft cleanup', () => {
       body: JSON.stringify({
         familyInfo,
         children: [{ firstName: 'Amy', lastName: 'Alpha', dateOfBirth: '2022-03-14', sex: 'F', programType: 'PRE_K', track: 'PRE_K', preKSsn: '123-45-6789' }],
-        signature: 'Ann Alpha',
-        signatureDate: '2026-08-04',
+        eSignConsent: true,
       }),
     })
     const res = await POST(req)
@@ -108,8 +107,7 @@ describe('POST /api/enrollment/submit draft cleanup', () => {
         body: JSON.stringify({
           familyInfo,
           children: [{ firstName: 'Amy', lastName: 'Alpha', dateOfBirth: '2022-03-14', sex: 'F', programType: 'PRE_K', track: 'PRE_K', preKSsn: '123-45-6789' }],
-          signature: 'Ann Alpha',
-          signatureDate: '2026-08-04',
+          eSignConsent: true,
         }),
       })
       const res = await POST(req)
@@ -119,5 +117,34 @@ describe('POST /api/enrollment/submit draft cleanup', () => {
     } finally {
       process.env.SSN_ENCRYPTION_KEY = savedKey
     }
+  })
+})
+
+const oneChild = { firstName: 'Amy', lastName: 'Alpha', dateOfBirth: '2022-03-14', sex: 'F', programType: 'PRE_K', track: 'PRE_K', preKSsn: '123-45-6789' }
+
+describe('POST /api/enrollment/submit electronic signing consent', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockAuth.mockResolvedValue({ userId: 'user_parent' })
+    mockFamilyFind.mockResolvedValue({ id: 'fam_1' })
+    mockDraftDelete.mockResolvedValue({ count: 1 })
+    mockChildCreate.mockResolvedValue({ id: 'child_1' })
+    mockApplicationCreate.mockResolvedValue({ id: 'app_1' })
+  })
+
+  it('returns 400 and writes nothing when eSignConsent is missing', async () => {
+    const res = await POST(submitRequest({ eSignConsent: undefined, children: [oneChild] }))
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toMatch(/agree/i)
+    expect(mockApplicationCreate).not.toHaveBeenCalled()
+  })
+
+  it('stores eSignConsentAt and no canvas signature on the application', async () => {
+    const res = await POST(submitRequest({ children: [oneChild] }))
+    expect(res.status).toBe(200)
+    const data = mockApplicationCreate.mock.calls[0][0].data
+    expect(data.eSignConsentAt).toBeInstanceOf(Date)
+    expect(data.signatureParent).toBeUndefined()
+    expect(data.signatureDate).toBeUndefined()
   })
 })

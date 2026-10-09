@@ -9,6 +9,7 @@ const TEXT_COLOR = rgb(0, 0, 0)
  * text blank that has no answer prints "N/A". Lines that must stay empty for
  * hand completion (signatures, dates-at-signing) are simply never emitted by
  * the maps. Checkboxes pass through untouched.
+ * Image fields (signatures) pass through untouched.
  */
 export function normalizeFields(fields: FieldEntry[]): FieldEntry[] {
   return fields.map((field) =>
@@ -42,6 +43,12 @@ export async function fillPdf(pdfBytes: Uint8Array, fields: FieldEntry[]): Promi
         font,
         color: TEXT_COLOR,
       })
+    } else if (field.type === 'image') {
+      const image = await doc.embedPng(field.png)
+      const scale = Math.min(field.width / image.width, field.height / image.height)
+      const width = image.width * scale
+      const height = image.height * scale
+      page.drawImage(image, { x: field.x, y: field.y, width, height })
     }
   }
 

@@ -1,5 +1,7 @@
 import { isAdmin } from "@/lib/admin-auth";
 import { generateSingleDocument } from "@/lib/documents/generate-documents";
+import { isSignableDocType } from "@/lib/documents/signature-lines";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 60;
@@ -13,16 +15,25 @@ export async function POST(
   }
 
   const { id } = await params;
-  const { documentType } = await req.json();
+  const body = await req.json();
+  const { documentType } = body;
 
-  const VALID_DOC_TYPES = new Set([
-    'enrollment_form', 'authorization_topical', 'no_liability',
-    'infant_feeding', 'transportation', 'vehicle_emergency',
-    'prek_child_reg', 'ssn_information', 'caps_referral',
-  ])
-
-  if (!documentType || !VALID_DOC_TYPES.has(documentType)) {
+  if (!documentType || !isSignableDocType(documentType)) {
     return NextResponse.json({ error: "documentType is required and must be a valid document type" }, { status: 400 });
+  }
+
+  const confirm = body?.confirm === true;
+  const existing = await prisma.applicationDocument.findUnique({
+    where: { applicationId_documentType: { applicationId: id, documentType } },
+  });
+  if (existing?.signedAt && !confirm) {
+    return NextResponse.json(
+      {
+        error: "This document is signed by the parent. Regenerating clears their signature and they will be asked to sign it again.",
+        requiresConfirm: true,
+      },
+      { status: 409 }
+    );
   }
 
   try {

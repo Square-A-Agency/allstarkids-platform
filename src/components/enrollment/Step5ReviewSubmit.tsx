@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useState } from "react";
 import type { EnrollmentWizardState } from "@/types/enrollment";
 
 type Props = {
   state: EnrollmentWizardState;
   onBack: () => void;
+  onConsentChange: (checked: boolean) => void;
   onSubmitted: () => void;
 };
 
@@ -29,86 +30,12 @@ function formatDate(dateStr: string): string {
   return `${mm}/${dd}/${yyyy}`;
 }
 
-export default function Step5SignSubmit({ state, onBack, onSubmitted }: Props) {
+export default function Step5ReviewSubmit({ state, onBack, onConsentChange, onSubmitted }: Props) {
   const { familyInfo, children } = state;
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [hasSigned, setHasSigned] = useState(false);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const lastPoint = useRef<{ x: number; y: number } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize canvas background to white
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }, []);
-
-  function getCanvasPoint(
-    canvas: HTMLCanvasElement,
-    clientX: number,
-    clientY: number
-  ): { x: number; y: number } {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY,
-    };
-  }
-
-  function startDrawing(clientX: number, clientY: number) {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    setIsDrawing(true);
-    setHasSigned(true);
-    lastPoint.current = getCanvasPoint(canvas, clientX, clientY);
-  }
-
-  function draw(clientX: number, clientY: number) {
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx || !lastPoint.current) return;
-    const current = getCanvasPoint(canvas, clientX, clientY);
-    ctx.beginPath();
-    ctx.moveTo(lastPoint.current.x, lastPoint.current.y);
-    ctx.lineTo(current.x, current.y);
-    ctx.strokeStyle = "#1e3a5f";
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.stroke();
-    lastPoint.current = current;
-  }
-
-  function stopDrawing() {
-    setIsDrawing(false);
-    lastPoint.current = null;
-  }
-
-  function clearSignature() {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    setHasSigned(false);
-  }
-
   async function handleSubmit() {
-    const canvas = canvasRef.current;
-    if (!canvas || !hasSigned) return;
-    const signature = canvas.toDataURL("image/png");
-    const signatureDate = new Date().toISOString();
-
     setIsSubmitting(true);
     setError(null);
 
@@ -119,8 +46,7 @@ export default function Step5SignSubmit({ state, onBack, onSubmitted }: Props) {
         body: JSON.stringify({
           familyInfo,
           children,
-          signature,
-          signatureDate,
+          eSignConsent: true,
         }),
       });
       const data = await res.json();
@@ -139,9 +65,9 @@ export default function Step5SignSubmit({ state, onBack, onSubmitted }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-gray-900">Review &amp; Sign</h2>
+        <h2 className="text-xl font-bold text-gray-900">Review &amp; Submit</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Review your application details, then sign and submit below.
+          Check your details, agree to electronic signing, then submit. You will sign each document on the next screen.
         </p>
       </div>
 
@@ -220,51 +146,26 @@ export default function Step5SignSubmit({ state, onBack, onSubmitted }: Props) {
           </div>
         </div>
 
-        {/* Right: Signature Pad */}
+        {/* Right: Electronic signing consent */}
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Parent/Guardian Signature <span className="text-red-500">*</span>
-            </label>
-            <canvas
-              ref={canvasRef}
-              width={600}
-              height={160}
-              className="border border-gray-300 rounded-md w-full bg-white touch-none"
-              style={{ height: "160px" }}
-              // Mouse events
-              onMouseDown={(e) => startDrawing(e.clientX, e.clientY)}
-              onMouseMove={(e) => draw(e.clientX, e.clientY)}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-              // Touch events
-              onTouchStart={(e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                startDrawing(touch.clientX, touch.clientY);
-              }}
-              onTouchMove={(e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                draw(touch.clientX, touch.clientY);
-              }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                stopDrawing();
-              }}
-            />
-            <div className="flex items-center gap-3 mt-2">
-              <button
-                type="button"
-                onClick={clearSignature}
-                className="px-3 py-1 text-xs font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                Clear
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Sign with your mouse or finger above.
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+            <h3 className="text-base font-semibold text-blue-900 mb-2">Electronic signing</h3>
+            <p className="text-sm text-blue-800 leading-relaxed mb-4">
+              After you submit, we prepare your enrollment forms with the details above. You will review each
+              form and sign it on screen. Nothing needs to be printed. Your signed copies stay in your family portal.
             </p>
+            <label className="flex items-start gap-3 text-sm text-blue-900 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={state.eSignConsent ?? false}
+                onChange={(e) => onConsentChange(e.target.checked)}
+                className="accent-blue-600 w-4 h-4 mt-0.5 shrink-0"
+              />
+              <span>
+                I agree to review and sign my enrollment documents electronically.
+                <span className="text-red-500 ml-1">*</span>
+              </span>
+            </label>
           </div>
 
           {/* Error display */}
@@ -287,7 +188,7 @@ export default function Step5SignSubmit({ state, onBack, onSubmitted }: Props) {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={!hasSigned || isSubmitting}
+              disabled={!(state.eSignConsent ?? false) || isSubmitting}
               className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
@@ -315,7 +216,7 @@ export default function Step5SignSubmit({ state, onBack, onSubmitted }: Props) {
                   Submitting…
                 </>
               ) : (
-                "Submit Application"
+                "Submit & Continue to Signing"
               )}
             </button>
           </div>

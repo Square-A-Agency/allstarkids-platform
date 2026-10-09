@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
 import { UserButton } from "@clerk/nextjs";
+import { signingSummary } from "@/lib/documents/signing-summary";
+import { isSignableDocType } from "@/lib/documents/signature-lines";
+import { documentLabel } from "@/lib/documents/labels";
 
 const statusConfig: Record<string, { label: string; dot: string; badge: string }> = {
   PENDING:            { label: "Pending Review",      dot: "bg-amber-400",   badge: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -31,7 +34,7 @@ export default async function DashboardPage() {
     where: { clerkUserId: userId },
     include: {
       applications: {
-        include: { child: true },
+        include: { child: true, documents: true },
         orderBy: { createdAt: "desc" },
       },
     },
@@ -119,6 +122,8 @@ export default async function DashboardPage() {
             <div className="space-y-3">
               {family.applications.map((app, idx) => {
                 const cfg = statusConfig[app.status] ?? statusConfig.PENDING;
+                const summary = signingSummary(app.documents);
+                const signedDocs = app.documents.filter((d) => isSignableDocType(d.documentType) && d.signedAt);
                 return (
                   <div
                     key={app.id}
@@ -154,6 +159,37 @@ export default async function DashboardPage() {
                         </span>
                       )}
                     </div>
+                    {app.status !== "REJECTED" && summary.signable > 0 && !summary.complete && (
+                      <div className="mt-4 flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                        <p className="text-sm text-amber-900 font-semibold">
+                          Sign documents ({summary.signable - summary.signed} remaining)
+                        </p>
+                        <Link href="/enroll/sign" className="text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg px-3 py-1.5">
+                          Sign now
+                        </Link>
+                      </div>
+                    )}
+                    {signedDocs.length > 0 && (
+                      <details className="mt-3">
+                        <summary className="text-xs font-semibold text-slate-500 cursor-pointer">
+                          Signed copies ({signedDocs.length})
+                        </summary>
+                        <ul className="mt-2 flex flex-wrap gap-2">
+                          {signedDocs.map((d) => (
+                            <li key={d.id}>
+                              <a
+                                href={`/api/enrollment/documents/${d.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:text-blue-800 border border-blue-100 bg-blue-50 rounded-full px-2.5 py-1"
+                              >
+                                {documentLabel(d.documentType)}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
                   </div>
                 );
               })}

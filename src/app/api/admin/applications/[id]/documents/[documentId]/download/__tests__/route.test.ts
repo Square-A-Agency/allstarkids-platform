@@ -48,6 +48,7 @@ const successDoc = {
   fileName: 'enrollment_form.pdf',
   fileUrl: 'documents/fam_1/child_1/enrollment_form.pdf',
   generationStatus: 'SUCCESS',
+  signedFileUrl: null,
 }
 
 describe('GET /api/admin/applications/[id]/documents/[documentId]/download', () => {
@@ -115,5 +116,16 @@ describe('GET /api/admin/applications/[id]/documents/[documentId]/download', () 
 
     expect(res.status).toBe(502)
     expect((await res.json()).error).toBeTruthy()
+  })
+
+  it('serves the signed copy by default when one exists, and the original with ?version=original', async () => {
+    mockFindUnique.mockResolvedValue({ ...successDoc, signedFileUrl: 'documents/fam_1/child_1/enrollment_form.signed.pdf' })
+    mockCreateSignedUrl.mockResolvedValue({ data: { signedUrl: 'https://x/signed' }, error: null })
+
+    await GET(makeRequest(), makeParams())
+    expect(mockCreateSignedUrl).toHaveBeenLastCalledWith('documents/fam_1/child_1/enrollment_form.signed.pdf', 60)
+
+    await GET(new Request(`https://example.com/api/admin/applications/${APP_ID}/documents/${DOC_ID}/download?version=original`), makeParams())
+    expect(mockCreateSignedUrl).toHaveBeenLastCalledWith(successDoc.fileUrl, 60)
   })
 })

@@ -1,7 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export default function ConfirmationPage() {
+export default async function ConfirmationPage({ searchParams }: { searchParams: Promise<{ signed?: string }> }) {
+  const { signed } = await searchParams;
+  const isSigned = signed === "1";
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 flex items-center justify-center p-6 relative overflow-hidden">
       <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-yellow-400/10 blur-3xl pointer-events-none" />
@@ -20,13 +23,16 @@ export default function ConfirmationPage() {
           <span className="text-4xl">🎉</span>
         </div>
 
-        <h1 className="text-2xl font-black text-slate-800 mb-2">Application Submitted!</h1>
+        <h1 className="text-2xl font-black text-slate-800 mb-2">
+          {isSigned ? "All documents signed!" : "Application Submitted!"}
+        </h1>
         <p className="text-slate-500 mb-2 leading-relaxed">
-          Thank you! We&apos;ve received your enrollment application and will be in touch within{" "}
-          <span className="font-semibold text-slate-700">3–5 business days</span> to schedule a playdate visit.
+          {isSigned
+            ? "Your enrollment packet is complete and signed copies are saved in your family portal. We will be in touch within 3 to 5 business days to schedule a playdate visit."
+            : "Thank you! We have received your enrollment application and will be in touch within 3 to 5 business days to schedule a playdate visit."}
         </p>
         <p className="text-sm text-slate-400 mb-8">
-          A confirmation email has been sent to your inbox.
+          {isSigned ? "A confirmation email is on its way." : "A confirmation email has been sent to your inbox."}
         </p>
 
         <Link

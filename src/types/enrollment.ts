@@ -123,4 +123,5 @@ export type EnrollmentWizardState = {
   step: number;
   familyInfo: FamilyInfo;
   children: ChildEntry[];
+  eSignConsent?: boolean; // "I agree to review and sign my enrollment documents electronically"
 };

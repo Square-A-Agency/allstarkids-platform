@@ -196,6 +196,10 @@ model EnrollmentApplication {
   signatureDirector     String?   @db.Text
   signatureDirectorDate DateTime?
 
+  // ── Electronic signing
+  eSignConsentAt     DateTime? // parent agreed to sign electronically
+  documentsSignedAt  DateTime? // every signable generated document is signed
+
   // ── Admin fields
   playdateScheduledAt DateTime?
   playdateNotes       String?
@@ -226,6 +230,14 @@ model ApplicationDocument {
   mimeType String?
   generationStatus  DocumentGenerationStatus @default(PENDING)
   generationError   String?
+
+  // ── Parent e-signature (null until signed)
+  signedFileUrl   String?
+  signedAt        DateTime?
+  signedIp        String?
+  signedUserAgent String?
+  unsignedSha256  String?
+  signedSha256    String?
 
   @@unique([applicationId, documentType])
   @@map("application_documents")

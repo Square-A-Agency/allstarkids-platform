@@ -3,6 +3,7 @@ import type { ProgramType, LivingArrangement, ApplicationTrack } from '@/generat
 export type FieldEntry =
   | { type: 'text';     page: number; x: number; y: number; value: string; fontSize?: number }
   | { type: 'checkbox'; page: number; x: number; y: number; checked: boolean }
+  | { type: 'image';    page: number; x: number; y: number; width: number; height: number; png: Uint8Array }
 
 export type InfantFeedingPlan = {
   feedingMethod?: string

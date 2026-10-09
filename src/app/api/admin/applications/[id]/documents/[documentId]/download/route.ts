@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string; documentId: string }> }
 ) {
   if (!(await isAdmin())) {
@@ -26,10 +26,13 @@ export async function GET(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
+  const version = new URL(req.url).searchParams.get("version");
+  const path = version === "original" || !doc.signedFileUrl ? doc.fileUrl : doc.signedFileUrl;
+
   // Signed URLs are minted per click, so a short expiry is safe here.
   const { data, error } = await supabase.storage
     .from("documents")
-    .createSignedUrl(doc.fileUrl, 60);
+    .createSignedUrl(path, 60);
 
   if (error || !data?.signedUrl) {
     return NextResponse.json({ error: "Could not create download link" }, { status: 502 });
